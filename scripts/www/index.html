@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>乘务部考试系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color: transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#333;min-height:100vh}
+.container{max-width:860px;margin:0 auto;padding:16px}
+.header{background:linear-gradient(135deg,#1890ff,#096dd9);color:#fff;padding:24px 20px;border-radius:12px;margin-bottom:20px;text-align:center}
+.header h1{font-size:24px;margin-bottom:6px}
+.header p{font-size:14px;opacity:.9}
+.card{background:#fff;border-radius:12px;padding:24px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card-title{font-size:18px;font-weight:600;margin-bottom:16px;color:#1a1a1a;text-align:center}
+.page{display:none}.page.active{display:block}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.mode-card{border:2px solid #e8e8e8;border-radius:12px;padding:24px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.mode-card:hover{border-color:#1890ff;transform:translateY(-2px);box-shadow:0 4px 12px rgba(24,144,255,.15)}
+.mode-card.daily{border-color:#52c41a}
+.mode-card.daily:hover{border-color:#52c41a;box-shadow:0 4px 12px rgba(82,196,26,.15)}
+.mode-icon{font-size:40px;margin-bottom:10px}
+.mode-name{font-size:20px;font-weight:700;margin-bottom:6px}
+.mode-desc{font-size:13px;color:#888;line-height:1.6}
+.mode-card.daily .mode-name{color:#52c41a}
+.mode-card.monthly .mode-name{color:#1890ff}
+.pass-line{position:absolute;top:8px;right:8px;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.pass-line.daily{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.pass-line.monthly{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
+.home-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.home-btn{padding:14px;border-radius:10px;border:none;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.home-btn:hover{opacity:.85}
+.btn-rank{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
+.btn-wrong{background:#fff1f0;color:#f5222d;border:1px solid #ffa39e}
+.stats-bar{display:flex;justify-content:center;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-num{font-size:22px;font-weight:700;color:#1890ff}
+.stat-label{font-size:12px;color:#888}
+.pass-notice{background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#389e0d;text-align:center;line-height:1.6}
+.pass-notice strong{color:#237804}
+.login-form{max-width:360px;margin:0 auto}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:14px;color:#555;margin-bottom:6px}
+.form-group input{width:100%;padding:12px 14px;border:1px solid #d9d9d9;border-radius:8px;font-size:15px;outline:none}
+.form-group input:focus{border-color:#1890ff}
+#loginName[readonly]{cursor: pointer;caret-color: #1890ff;}
+.btn-primary{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#1890ff,#096dd9);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary:hover{opacity:.9}
+.btn-secondary{padding:10px 20px;background:#fff;color:#1890ff;border:1px solid #1890ff;border-radius:8px;cursor:pointer;font-size:14px;transition:all .2s}
+.btn-secondary:hover{background:#e6f7ff}
+.btn-back{padding:10px 20px;background:#f5f5f5;color:#666;border:1px solid #d9d9d9;border-radius:8px;cursor:pointer;font-size:14px;transition:all .2s}
+.mode-badge{display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:500;margin-bottom:12px}
+.mode-badge.daily{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.mode-badge.monthly{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff}
+.exam-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.exam-info{font-size:14px;color:#666}
+.exam-info span{margin-right:16px}
+.timer{font-size:18px;font-weight:700;color:#f5222d}
+.question-type{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500;margin-right:8px}
+.type-single{background:#e6f7ff;color:#1890ff}
+.type-judge{background:#f6ffed;color:#52c41a}
+.type-multi{background:#fff7e6;color:#fa8c16}
+.question-num{font-size:14px;color:#999}
+.progress-bar{height:8px;background:#f0f0f0;border-radius:4px;margin-bottom:16px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#1890ff,#36cfc9);transition:width .3s}
+.question-text{font-size:16px;line-height:1.8;margin-bottom:16px;color:#1a1a1a}
+.options-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.option-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid #d9d9d9;border-radius:8px;cursor:pointer;transition:all .2s;font-size:15px;line-height:1.5}
+.option-item:hover{border-color:#1890ff;background:#f0f8ff}
+.option-item.selected{border-color:#1890ff;background:#e6f7ff}
+.option-letter{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+.option-item.selected .option-letter{background:#1890ff;color:#fff}
+.action-buttons{display:flex;gap:10px;margin-top:20px}
+.action-buttons button{flex:1;padding:12px;border-radius:8px;font-size:15px;cursor:pointer;border:none;font-weight:500;transition:all .2s}
+.btn-prev{background:#f0f0f0;color:#333}
+.btn-next{background:#1890ff;color:#fff}
+.btn-submit{background:#52c41a;color:#fff}
+.grid-nav{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:6px;margin-top:20px}
+.grid-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;transition:all .2s}
+.grid-cell.current{border-color:#1890ff;background:#e6f7ff;color:#1890ff;font-weight:600}
+.grid-cell.answered{background:#bae7ff;border-color:#91d5ff}
+.result-score{text-align:center;padding:10px 0 20px}
+.result-score-num{font-size:64px;font-weight:700;color:#1890ff;line-height:1}
+.result-score-label{font-size:16px;color:#666;margin-top:8px}
+.result-score-level{display:inline-block;padding:4px 16px;border-radius:16px;font-size:14px;font-weight:600;margin-top:10px}
+.level-excellent{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.level-good{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff}
+.level-pass{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
+.level-fail{background:#fff1f0;color:#f5222d;border:1px solid #ffa39e}
+.result-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:16px 0}
+.result-stat{background:#f5f7fa;border-radius:8px;padding:14px;text-align:center}
+.result-stat-num{font-size:20px;font-weight:700}
+.result-stat-label{font-size:12px;color:#888;margin-top:2px}
+.type-result-list{margin:16px 0}
+.type-result-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#f5f7fa;border-radius:8px;margin-bottom:6px;font-size:14px}
+.review-list{margin-top:16px}
+.review-item{border:1px solid #eee;border-radius:8px;margin-bottom:10px;overflow:hidden}
+.review-item-header{padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:#fafafa;transition:all .2s}
+.review-item-q{font-size:14px;flex:1;margin-right:10px;line-height:1.5}
+.review-item-body{padding:12px 14px;display:none;border-top:1px solid #eee;font-size:13px;line-height:1.7}
+.review-item.expanded .review-item-body{display:block}
+.review-item.correct{border-color:#b7eb8f}
+.review-item.correct .review-item-header{background:#f6ffed}
+.review-item.wrong{border-color:#ffa39e}
+.review-item.wrong .review-item-header{background:#fff1f0}
+.rank-tabs{display:flex;gap:8px;margin-bottom:16px;justify-content:center}
+.rank-tab{padding:8px 20px;border-radius:20px;border:1px solid #d9d9d9;background:#fff;cursor:pointer;font-size:14px;transition:all .2s}
+.rank-tab.active{background:#1890ff;color:#fff;border-color:#1890ff}
+.rank-date-filter{margin-bottom:12px;text-align:center}
+.rank-date-filter select{padding:8px 14px;border:1px solid #d9d9d9;border-radius:8px;font-size:14px;outline:none}
+.rank-table{width:100%;border-collapse:collapse;font-size:14px}
+.rank-table th,.rank-table td{border:1px solid #e8e8e8;padding:10px 12px;text-align:center}
+.rank-table th{background:#fafafa;font-weight:600}
+.rank-table tr:nth-child(1) td{background:#fff7e6;font-weight:600}
+.rank-table tr:nth-child(2) td{background:#f5f5f5}
+.rank-table tr:nth-child(3) td{background:#fff2e8}
+.rank-medal{font-size:18px}
+.rank-name{text-align:left!important;padding-left:16px!important}
+.rank-name-clickable{cursor:pointer;color:#1890ff;text-decoration:underline;transition:all .2s}
+.rank-name-clickable:hover{color:#096dd9}
+.empty-rank{text-align:center;padding:40px 20px;color:#999}
+.rank-actions{display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap:wrap}
+.month-stats{background:#f5f7fa;border-radius:8px;padding:14px;margin-bottom:16px}
+.month-stats-title{font-size:14px;font-weight:600;margin-bottom:10px;color:#333}
+.month-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px}
+.month-stat-item{text-align:center}
+.month-stat-num{font-size:18px;font-weight:700;color:#1890ff}
+.month-stat-label{font-size:11px;color:#888;margin-top:2px}
+.wrong-stats-bar{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;justify-content:center}
+.wrong-filter{margin-bottom:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.wrong-filter button{padding:6px 14px;border-radius:16px;border:1px solid #d9d9d9;background:#fff;cursor:pointer;font-size:13px;transition:all .2s}
+.wrong-filter button.active{background:#f5222d;color:#fff;border-color:#f5222d}
+.wrong-list-item{border:1px solid #eee;border-radius:8px;margin-bottom:10px;overflow:hidden}
+.wrong-list-header{padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:#fafafa;transition:all .2s}
+.wrong-list-body{padding:12px 14px;display:none;border-top:1px solid #eee;font-size:13px;line-height:1.7}
+.wrong-list-item.expanded .wrong-list-body{display:block}
+.wrong-rate{font-size:13px;font-weight:600}
+.wrong-rate.high{color:#f5222d}
+.wrong-rate.mid{color:#fa8c16}
+.wrong-rate.low{color:#52c41a}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:12px;padding:24px;max-width:380px;width:90%;text-align:center;max-height:80vh;overflow-y:auto}
+.modal-title{font-size:18px;font-weight:600;margin-bottom:12px}
+.modal-content{font-size:14px;color:#666;margin-bottom:16px;line-height:1.6}
+.modal input{width:100%;padding:12px;border:1px solid #d9d9d9;border-radius:8px;font-size:15px;text-align:center;letter-spacing:4px;margin-bottom:16px;outline:none}
+.modal input:focus{border-color:#1890ff}
+.modal-buttons{display:flex;gap:10px}
+.modal-buttons button{flex:1;padding:10px;border-radius:8px;cursor:pointer;font-size:14px;border:none;transition:all .2s}
+.modal-error{color:#f5222d;font-size:13px;margin-bottom:12px;display:none}
+.modal-error.show{display:block}
+.history-modal{max-width:620px;text-align:left}
+.history-modal .modal-title{text-align:center}
+.history-item{border:1px solid #e8e8e8;border-radius:8px;margin-bottom:10px;overflow:hidden}
+.history-item-header{padding:10px 14px;background:#fafafa;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s}
+.history-item-header:hover{background:#f0f0f0}
+.history-item-body{padding:12px 14px;display:none;border-top:1px solid #eee;font-size:13px;line-height:1.7}
+.history-item.expanded .history-item-body{display:block}
+.history-score{font-size:18px;font-weight:700}
+.history-score.pass{color:#52c41a}
+.history-score.fail{color:#f5222d}
+.btn-print{background:#e6fffb;color:#13c2c2;border:1px solid #87e8de;transition:all .2s}
+.btn-print:hover{background:#b5f5ec}
+.print-area{display:none}
+.home-btn.btn-backup{background:#f0f5ff;color:#2f54eb;border:1px solid #adc6ff}
+.home-btn.btn-import{text-align:center;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.backup-bar{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.history-del-btn{padding:3px 10px;background:#fff1f0;color:#f5222d;border:1px solid #ffa39e;border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0;transition:all .2s}
+.history-del-btn:hover{background:#ffccc7}
+.btn-record{background:#f9f0ff;color:#722ed1;border:1px solid #d3adf7;transition:all .2s}
+.btn-record:hover{background:#efdbff}
+.wrong-record-table{width:100%;border-collapse:collapse;font-size:13px}
+.wrong-record-table th,.wrong-record-table td{border:1px solid #e8e8e8;padding:8px 10px;text-align:center;vertical-align:top}
+.wrong-record-table th{background:#fafafa;font-weight:600}
+.wrong-record-table td.wrong-record-content{text-align:left;line-height:1.6}
+
+/* 自定义数字软键盘 */
+.numeric-keyboard {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #f0f2f5;
+    padding: 12px;
+    display: none;
+    z-index: 9999;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+.numeric-keyboard.show {
+    display: block;
+}
+.keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.key-btn {
+    flex: 1;
+    max-width: 80px;
+    height: 52px;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: all .1s;
+}
+.key-btn:active {
+    background: #e6f7ff;
+    border-color: #1890ff;
+    color: #1890ff;
+    transform: scale(0.96);
+}
+.key-btn.func {
+    background: #fff7e6;
+    border-color: #ffd591;
+    color: #fa8c16;
+}
+.key-btn.confirm {
+    background: linear-gradient(135deg,#1890ff,#096dd9);
+    border-color: #096dd9;
+    color: #fff;
+    max-width: none;
+    flex: 1;
+}
+
+/* 统一按压动效 */
+.mode-card:active, .home-btn:active, .btn-primary:active, 
+.btn-secondary:active, .btn-back:active, .option-item:active, 
+.grid-cell:active, .rank-tab:active, .rank-name-clickable:active,
+.review-item-header:active, .wrong-list-header:active, 
+.history-item-header:active, .history-del-btn:active, 
+.btn-print:active, .btn-record:active {
+    transform: scale(0.96);
+}
+
+@media print{
+body{background:#fff!important}
+.container,.modal-overlay,.numeric-keyboard{display:none!important}
+.print-area{display:block!important;padding:10px;font-size:12px;color:#000}
+.print-area h2{text-align:center;font-size:20px;margin:0 0 6px;padding-bottom:8px;border-bottom:2px solid #000}
+.print-area .print-sub{text-align:center;font-size:12px;color:#333;margin-bottom:14px}
+.print-area .print-section-title{font-size:14px;font-weight:bold;margin:14px 0 8px;padding:6px 10px;background:#e8e8e8;border-left:4px solid #1890ff}
+.print-area .print-stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.print-area .print-stat{border:1px solid #000;padding:6px 12px;text-align:center;min-width:80px}
+.print-area .print-stat-num{font-size:16px;font-weight:bold}
+.print-area .print-stat-label{font-size:11px}
+.print-area table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px}
+.print-area th,.print-area td{border:1px solid #000;padding:5px 6px;text-align:center}
+.print-area th{background:#eee}
+.print-area .print-detail-question{text-align:left!important}
+.print-area .print-footer{margin-top:24px;display:flex;justify-content:space-between;font-size:13px}
+.print-area .print-footer div{width:30%}
+}
+@media(max-width:600px){
+.container{padding:10px}.header{padding:18px 14px}.header h1{font-size:20px}.card{padding:16px}.mode-grid{grid-template-columns:1fr}.question-text{font-size:15px}.option-item{font-size:14px;padding:10px 12px}
+.key-btn{height: 48px;font-size: 18px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header"><h1>乘务部考试系统</h1><p>日考 · 月考 · 自动排名 · 错题分析 · 历史记录 | 题库：城市轨道交通应知应会题库2026</p></div>
+<div id="page-home" class="page active">
+<div class="card">
+<div class="pass-notice"><strong>合格标准：</strong>日考 <strong>80分</strong> 合格 &nbsp;|&nbsp; 月考 <strong>90分</strong> 合格</div>
+<div class="stats-bar" id="homeStats"></div>
+<div class="mode-grid">
+<div class="mode-card daily" onclick="startLogin('daily')"><span class="pass-line daily">合格线 80分</span><div class="mode-icon">📝</div><div class="mode-name">日考</div><div class="mode-desc">10道题 · 单选5+判断3+多选2<br>满分100分</div></div>
+<div class="mode-card monthly" onclick="startLogin('monthly')"><span class="pass-line monthly">合格线 90分</span><div class="mode-icon">📊</div><div class="mode-name">月考</div><div class="mode-desc">50道题 · 单选35+判断5+多选10<br>满分100分</div></div>
+</div>
+<div class="home-actions"><button class="home-btn btn-rank" onclick="showRankPage()">🏆 成绩排名</button><button class="home-btn btn-wrong" onclick="showWrongPage()">📕 错题集</button><button class="home-btn btn-record" onclick="showWrongRecordPage()">📋 错题记录表</button></div>
+<div class="backup-bar"><button class="home-btn btn-backup" onclick="exportBackup()">💾 导出备份</button><label class="home-btn btn-backup btn-import">📂 导入备份<input type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)"></label></div>
+</div>
+</div>
+</div>
+<div id="page-login" class="page"><div class="card"><div style="text-align:center"><span class="mode-badge" id="loginModeBadge"></span></div><div class="card-title">考生登录</div><div class="login-form"><div class="form-group"><label>请输入司机代码</label><input type="text" id="loginName" placeholder="请输入司机代码" maxlength="20" readonly onclick="showKeyboard()"></div><button class="btn-primary" onclick="startExam()">开始考试</button></div><div style="text-align:center;margin-top:16px"><button class="btn-back" onclick="goHome()">返回首页</button></div></div></div>
+<div id="page-exam" class="page"><div class="card"><div class="exam-header"><div class="exam-info"><span id="examModeLabel"></span><span>考生：<strong id="examName"></strong></span><span id="examProgress"></span></div><div class="timer" id="timer">00:00</div></div><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div style="margin-bottom:12px"><span class="question-type" id="qType"></span><span class="question-num" id="qNum"></span></div><div class="question-text" id="qText"></div><div id="qOptions"></div><div class="action-buttons"><button class="btn-prev" id="prevBtn" onclick="prevQuestion()">上一题</button><button class="btn-next" id="nextBtn" onclick="nextQuestion()">下一题</button><button class="btn-submit" id="submitExamBtn" style="display:none" onclick="confirmSubmit()">交卷</button></div><div class="action-buttons"><button class="btn-back" onclick="confirmBackHome()">返回主界面</button><button class="btn-secondary" onclick="confirmRestart()">重新开始</button></div><div class="grid-nav" id="gridNav"></div></div></div>
+<div id="page-result" class="page"><div class="card"><div style="text-align:center"><span class="mode-badge" id="resultModeBadge"></span></div><div class="result-score"><div class="result-score-num" id="resultScore">0</div><div class="result-score-label">总分（满分100分）</div><div class="result-score-level" id="resultLevel"></div></div><div class="result-stats"><div class="result-stat"><div class="result-stat-num" id="statCorrect">0</div><div class="stat-label">答对</div></div><div class="result-stat"><div class="result-stat-num" id="statWrong">0</div><div class="stat-label">答错</div></div><div class="result-stat"><div class="result-stat-num" id="statUnanswered">0</div><div class="stat-label">未答</div></div><div class="result-stat"><div class="result-stat-num" id="statTime">0</div><div class="stat-label">用时(分钟)</div></div></div><div class="type-result-list" id="typeResultList"></div><div class="action-buttons"><button class="btn-secondary" onclick="toggleReview()">查看答题详情</button><button class="btn-primary" onclick="goHome()">返回首页</button></div><div class="review-list" id="reviewList" style="display:none;margin-top:20px"></div></div></div>
+<div id="page-rank" class="page"><div class="card"><div class="card-title">成绩排行榜</div><div class="rank-tabs"><button class="rank-tab active" data-mode="daily" onclick="switchRankTab('daily')">日考排名</button><button class="rank-tab" data-mode="monthly" onclick="switchRankTab('monthly')">月考排名</button></div><div class="rank-date-filter" id="rankDateFilter"></div><div id="monthStats" style="display:none"></div><div id="rankContent"></div><div class="rank-actions"><button class="btn-print" id="printMonthlyBtn" onclick="printMonthlyReport()" style="display:none">🖨️ 打印月度报表</button><button class="btn-back" onclick="goHome()">返回首页</button><button class="btn-danger" onclick="confirmClearRank()">清空成绩</button></div></div></div>
+<div id="page-wrong" class="page"><div class="card"><div class="card-title">错题集分析</div><div class="wrong-stats-bar" id="wrongStatsBar"></div><div class="wrong-filter" id="wrongFilter"><button class="active" data-type="all" onclick="filterWrong('all')">全部</button><button data-type="single" onclick="filterWrong('single')">单选</button><button data-type="judge" onclick="filterWrong('judge')">判断</button><button data-type="multi" onclick="filterWrong('multi')">多选</button></div><div id="wrongList"></div><div class="rank-actions"><button class="btn-back" onclick="goHome()">返回首页</button></div></div></div>
+<div id="page-wrong-record" class="page"><div class="card"><div class="card-title">乘务部日考错误记录表</div><div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span class="mode-badge daily">全员错题 · 按时间顺序</span><button class="btn-print" onclick="printWrongRecord()">🖨️ 打印错题记录表</button></div><div id="wrongRecordContent"></div><div class="rank-actions"><button class="btn-back" onclick="goHome()">返回首页</button></div></div></div>
+<div class="modal-overlay" id="pwdModal"><div class="modal"><div class="modal-title">请输入密码</div><div class="modal-content">清空成绩需要验证密码</div><input type="password" id="pwdInput" placeholder="请输入密码" maxlength="20"><div class="modal-error" id="pwdError">密码错误，请重试</div><div class="modal-buttons"><button class="btn-back" onclick="hidePwdModal()">取消</button><button class="btn-primary" onclick="verifyPwd()">确认</button></div></div></div>
+<div class="modal-overlay" id="confirmModal"><div class="modal"><div class="modal-title" id="confirmTitle">提示</div><div class="modal-content" id="confirmContent"></div><div class="modal-buttons"><button class="btn-back" onclick="hideConfirmModal()">取消</button><button class="btn-primary" id="confirmOkBtn">确定</button></div></div></div>
+<div class="modal-overlay" id="historyModal"><div class="modal history-modal"><div class="modal-title" id="historyTitle">考试历史记录</div><div id="historyContent"></div><div class="modal-buttons" style="margin-top:16px"><button class="btn-print" onclick="printUserHistory(false)">🖨️ 打印成绩单</button><button class="btn-print" onclick="printUserHistory(true)">🖨️ 打印详细记录</button><button class="btn-primary" onclick="hideHistoryModal()">关闭</button></div></div></div>
+
+<!-- 自定义数字软键盘 -->
+<div class="numeric-keyboard" id="numericKeyboard">
+    <div class="keyboard-row">
+        <div class="key-btn" onclick="inputNum('1')">1</div>
+        <div class="key-btn" onclick="inputNum('2')">2</div>
+        <div class="key-btn" onclick="inputNum('3')">3</div>
+    </div>
+    <div class="keyboard-row">
+        <div class="key-btn" onclick="inputNum('4')">4</div>
+        <div class="key-btn" onclick="inputNum('5')">5</div>
+        <div class="key-btn" onclick="inputNum('6')">6</div>
+    </div>
+    <div class="keyboard-row">
+        <div class="key-btn" onclick="inputNum('7')">7</div>
+        <div class="key-btn" onclick="inputNum('8')">8</div>
+        <div class="key-btn" onclick="inputNum('9')">9</div>
+    </div>
+    <div class="keyboard-row">
+        <div class="key-btn func" onclick="clearInput()">清空</div>
+        <div class="key-btn" onclick="inputNum('0')">0</div>
+        <div class="key-btn func" onclick="deleteNum()">←</div>
+    </div>
+    <div class="keyboard-row">
+        <div class="key-btn confirm" onclick="confirmInput()">确定</div>
+    </div>
+</div>
+
+<script>
+// ===================== 题库配置：单选113，多选23，判断33 =====================
+const QUESTION_BANK = [
+{"id":1,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，列车运行图的编制应以满足（）需求为导向。","options":["列车运行","最大载荷","客流","乘客服务"],"correctAnswer":"客流"},
+{"id":2,"type":"single","question":"依据《城市轨道交通运营管理规定》，城市轨道交通线路初期运营期满（），运营单位应当向城市轨道交通运营主管部门报送初期运营报告，并由城市轨道交通运营主管部门组织正式运营前安全评估。","options":["三个月","半年","一年","三年"],"correctAnswer":"一年"},
+{"id":3,"type":"single","question":"依据《城市轨道交通突发事件应急预案编制规范》，运营单位综合应急预案中，后期处置不包括（）。","options":["现场勘察和事故调查","恢复运营","保险理赔","预警信息发布"],"correctAnswer":"预警信息发布"},
+{"id":4,"type":"single","question":"依据《城市轨道交通初期运营前安全评估规范》，列车驾驶员、行车调度员、行车值班员、信号工、通信工等重点岗位人员应通过安全背景审查，列车驾驶员还应通过（）。","options":["技能考核","胜任力测评","心理测试","试岗评估"],"correctAnswer":"心理测试"},
+{"id":5,"type":"single","question":"依据《城市轨道交通正式运营前安全评估规范》，线路投入初期运营（）内应完成首次全面风险辨识。","options":["3个月","5个月","6个月","8个月"],"correctAnswer":"6个月"},
+{"id":6,"type":"single","question":"依据《《城市轨道交通运营安全评估规范第3部分：有轨电车》》，合理安排列车驾驶员工作时间，单次值乘的驾驶时长不应超过（），连续值乘间隔不应小于（）。","options":["1.5小时；15分钟","2小时；15分钟","2小时；20分钟","2.5小时；30分钟"],"correctAnswer":"1.5小时；15分钟"},
+{"id":7,"type":"single","question":"依据《城市轨道交通正式运营前安全评估规范》，列车驾驶员、调度员、行车值班员从其他线路调入本线时，应经过本线路的学习考试，并在经验丰富的人员指导和监督下进行不少于（）的现场业务操作。","options":["10天","15天","20天","30天"],"correctAnswer":"15天"},
+{"id":8,"type":"single","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，运营单位每年对所辖线路开展（）风险全面辨识，持续发现未知安全风险，并及时更新风险数据库。","options":["一次","二次","三次","五次"],"correctAnswer":"一次"},
+{"id":9,"type":"single","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，运营单位应按照（）原则建立健全风险管控工作机制。","options":["谁主管谁负责","分级管控","属地","安全第一、预防为主"],"correctAnswer":"分级管控"},
+{"id":10,"type":"single","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，对于较大风险，应由（）负责人牵头组织制定管控措施并督促落实。","options":["运营单位","专业部门","相关专业技术人员","班组长"],"correctAnswer":"专业部门"},
+{"id":11,"type":"single","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，运营单位应对（）编制监控方案和专项应急措施，并对涉及的相关人员组织开展安全防范、应急逃生避险和应急处置等的宣传、培训和演练。","options":["重大风险","较大风险","一般风险","较小风险"],"correctAnswer":"重大风险"},
+{"id":12,"type":"single","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，新增或更新的风险管控措施及时修订到本单位的相关管理制度、作业标准或应急预案。其中，重大风险管控措施应在（）内修订完成。","options":["1个月","3个月","5个月","6个月"],"correctAnswer":"3个月"},
+{"id":13,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，运营单位应做好土建工程、车辆、供电、通信、信号、机电等设施设备的运行维护工作，确保各设施设备系统兼容协调，能够按照最大（）能力稳定运行，保障行车组织需要，充分满足客流需求。","options":["设计","载荷","计划","运算"],"correctAnswer":"设计"},
+{"id":14,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，城市轨道交通列车等级由高至低依次为（）。","options":["载客列车、专运列车、空驶列车、调试列车和其他列车","专运列车、载客列车、空驶列车、调试列车和其他列车","专运列车、载客列车、调试列车、空驶列车和其他列车","载客列车、专运列车、空驶列车、调试列车和其他列车"],"correctAnswer":"专运列车、载客列车、空驶列车、调试列车和其他列车"},
+{"id":15,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，运营单位应将（）作为行车组织工作的基础，组织内部各部门严格根据其要求开展运营生产工作。","options":["列车运行图","运营时刻表","列车运行计划","运营安全"],"correctAnswer":"列车运行图"},
+{"id":16,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，运营单位应合理安排施工作业计划，组织各部门严格按照施工作业计划执行，不得随意变更，严格落实（）制度，做好施工安全防护。","options":["请销点","登记","汇报","审核"],"correctAnswer":"请销点"},
+{"id":17,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，车辆基地应确保运用车状态良好，优先保障（）列车作业。","options":["接发","调车","调试","转线"],"correctAnswer":"接发"},
+{"id":18,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，口头命令要素应包含受令人、（）。","options":["命令编号","命令内容","发令人","命令时间"],"correctAnswer":"命令内容"},
+{"id":19,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，列车确需越过防护信号机显示的禁止信号时，行车调度人员应确认该信号机内方线路空闲、道岔位置正确且锁闭后，方可发布允许列车越过禁止信号的命令，首列车通过道岔时运行速度不应高于（）km/h。","options":["5","15","25","45"],"correctAnswer":"25"},
+{"id":20,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，对于地面及高架线路，风力达8级(风速为17.2～20.7m/s)时列车运行速度不应超过（）。","options":["25km/h","30km/h","45km/h","60km/h"],"correctAnswer":"25km/h"},
+{"id":21,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，列车因故需在区间退行或列车停站越过停车标超过可退行距离确需退行时，驾驶员应及时报告（）。","options":["车站","行车调度","轮值","事故处理主任"],"correctAnswer":"行车调度"},
+{"id":22,"type":"single","question":"依据《城市轨道交通行车组织规则》，同一车站不宜组织连续（）列及以上列车清客。","options":["两","三","四","五"],"correctAnswer":"两"},
+{"id":23,"type":"single","question":"依据《城市轨道交通运营突发事件应急演练管理办法》，运营单位（）至少组织一次专项应急预案演练。每个专项应急预案（）至少演练一次","options":["每半年；每1年","每1年；每2年","每半年；每3年","每1年；每5年"],"correctAnswer":"每半年；每3年"},
+{"id":24,"type":"single","question":"依据《城市轨道交通运营突发事件应急演练管理办法》，运营单位应结合线路特征、设备性能、应急能力、行业发生的事故事件案例等因素，制定综合和专项年度应急演练计划，其中实战演练比例不得低于（）。","options":["百分之五十","百分之六十","百分之七十","百分之八十"],"correctAnswer":"百分之七十"},
+{"id":25,"type":"single","question":"依据《城市轨道交通运营突发事件应急演练管理办法》，现场处置方案演练应纳入日常工作常态化开展，（）应将有关的现场处置方案至少全部演练一次，不同现场处置方案的演练可合并开展。","options":["每个班组每年","每个单位每年","每个班组每2年","每个单位每2年"],"correctAnswer":"每个班组每年"},
+{"id":26,"type":"single","question":"依据《城市轨道交通运营指标体系》，线路晚点列次的定义是（）。","options":["统计期内，列车在运行过程中因故障临时停车的次数","统计期内，线路所有列车的平均延误时间","统计期内，因天气原因导致的列车延误次数","统计期内，列车运行图（时刻表）执行中，列车在始发站出发或到达终到站的时刻与列车运行图（时刻表）计划时刻相比大于等于规定晚点统计标"],"correctAnswer":"统计期内，列车运行图（时刻表）执行中，列车在始发站出发或到达终到站的时刻与列车运行图（时刻表）计划时刻相比大于等于规定晚点统计标"},
+{"id":27,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，遇雾、霾、雨、雪、沙尘等恶劣天气瞭望困难时，地面及高架线路列车应开启前照灯，限速运行，适时鸣笛，瞭望距离不足（）时，驾驶员应立即停车。","options":["5米","10米","20米","25米"],"correctAnswer":"5米"},
+{"id":28,"type":"single","question":"依据《城市轨道交通运营指标体系》，司机生产率定义正确的是（）。","options":["司机生产率定义：统计期内，每个司机平均每小时完成的运营车公里。","司机生产率定义：统计期内，每个司机平均每天完成的运营车公里。","司机生产率定义：统计期内，每个司机平均每月完成的运营车公里。","司机生产率定义：统计期内，每个司机平均每年完成的运营车公里。"],"correctAnswer":"司机生产率定义：统计期内，每个司机平均每天完成的运营车公里。"},
+{"id":29,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，曲线超高的作用是（）。","options":["增加列车通过曲线时的速度","平衡列车通过曲线时产生的离心力","降低钢轨磨损","减少轨道养护成本"],"correctAnswer":"平衡列车通过曲线时产生的离心力"},
+{"id":30,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，标准轨距系指直线地段为（）的轨距。","options":["1435mm","1436mm","1437mm","1438mm"],"correctAnswer":"1435mm"},
+{"id":31,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，站台高度系指站台面与（）的高差。","options":["轨道顶面","轨道底面","道床顶面","路基面"],"correctAnswer":"轨道顶面"},
+{"id":32,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，站台尾端是指按正常运行方向，列车停于站台后（）位置对应的站台端。","options":["车头","车尾","车厢中部","站台中部"],"correctAnswer":"车尾"},
+{"id":33,"type":"single","question":"依据《城市轨道交通运营技术规范》，以下关于列车停站时间（含开关门时间）的设置符合规范要求的为（）。","options":["最小停站时间不应低于15s，最大停站时间不宜超过50s","最小停站时间不应低于20s，最大停站时间不宜超过60s","最小停站时间不应低于30s，最大停站时间不宜超过70s","最小停站时间不应低于25s，最大停站时间不宜超过65s"],"correctAnswer":"最小停站时间不应低于20s，最大停站时间不宜超过60s"},
+{"id":34,"type":"single","question":"依据《城市轨道交通运营技术规范》，城市轨道交通线路的全天运营时间不应少于（）。","options":["12h","15h","18h","20h"],"correctAnswer":"15h"},
+{"id":35,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，以下关于“信号机后方”定义描述正确是（）。","options":["信号机机构背面所对的方向","信号机机构侧面所对的方向","信号机机构正面所对的方向","信号机机构顶部所对的方向"],"correctAnswer":"信号机机构背面所对的方向"},
+{"id":36,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，以下关于“警冲标”定义描述正确是（）。","options":["为防止列车与相邻线上运行的列车发生正面冲突，在两线路之间设置的警示标志。","为防止列车脱轨，在轨道旁设置的、用于提示司机减速的警示标志。","为防止列车与相邻线上运行的列车发生侧面冲突，在两线路之间设置的、用于指示列车停车位置的警示标志。","为规范列车进站顺序，在站台边缘设置的、用于指示列车停靠位置的标志。"],"correctAnswer":"为防止列车与相邻线上运行的列车发生侧面冲突，在两线路之间设置的、用于指示列车停车位置的警示标志。"},
+{"id":37,"type":"single","question":"依据《轨道列车司机(城市轨道交通列车司机)国家职业技能标准（2019版）》，安全基本知识包括消防安全、用电安全、（）、公共安全防范、交通安全等知识","options":["行车安全","综治安全","人身安全","设备设施使用安全"],"correctAnswer":"行车安全"},
+{"id":38,"type":"single","question":"依据《城市轨道交通列车驾驶员技能和素质要求第1部分：地铁、轻轨和单轨》，城市轨道交通指的是采用专用轨道（）的城市公共客运交通系","options":["运行","铺设","导向运行","运营导向"],"correctAnswer":"导向运行"},
+{"id":39,"type":"single","question":"依据《城市轨道交通列车驾驶员技能和素质要求第1部分：地铁、轻轨和单轨》，行车组织是利用城市轨道交通设施设备，根据（）组织列车运行的活动。","options":["运营时刻表","列车运行图","运营计划","运行计划"],"correctAnswer":"列车运行图"},
+{"id":40,"type":"single","question":"依据《城市轨道交通列车驾驶员技能和素质要求第1部分：地铁、轻轨和单轨》，列车驾驶员上岗后每年应接受不少于（）的继续教育。","options":["32学时","60小时","80小时","80学时"],"correctAnswer":"80学时"},
+{"id":41,"type":"single","question":"依据《城市轨道交通行车组织规则》，正线和配线行车由行车调度员指挥，车辆基地行车由（）指挥，列车应遵照列车运行计划，按调度员命令和信号指令行车。","options":["行车调度员","车辆基地调度员","车辆基地乘务值班员","车辆检修调度员"],"correctAnswer":"车辆基地调度员"},
+{"id":42,"type":"single","question":"依据《城市轨道交通行车组织规则》，机车、车辆无论空、重状态，均不应超过（）。","options":["线路限界","机车、车辆限界","设备限界","建筑限界"],"correctAnswer":"机车、车辆限界"},
+{"id":43,"type":"single","question":"依据《城市轨道交通行车组织规则》，单列车车载信号设备故障时，由（）负责处理。","options":["信号人员","行车调度员","列车驾驶员","客车队长"],"correctAnswer":"列车驾驶员"},
+{"id":44,"type":"single","question":"依据《城市轨道交通行车组织规则》，发生突发事件后，运营单位应按规定立即启动相应的（），采取应急抢险措施，防止事态扩大，并按规定及时报告。","options":["公交接驳","行车应急预案","救援程序","疏散程序"],"correctAnswer":"行车应急预案"},
+{"id":45,"type":"single","question":"依据《城市轨道交通行车组织规则》，行车人员应按（）的显示要求或显示条件组织行车。","options":["道岔","进路","车辆","信号"],"correctAnswer":"信号"},
+{"id":46,"type":"single","question":"依据《中华人民共和国安全生产法》，属于国家规定的高危行业、领域的生产经营单位，应当投保（）。","options":["产品责任保险","安全生产责任保险","火灾公众责任保险","环境污染责任保险"],"correctAnswer":"安全生产责任保险"},
+{"id":47,"type":"single","question":"依据《中华人民共和国安全生产法》，对于因生产安全事故受到损害的从业人员，以下说法正确的是（）。","options":["只能依法享有工伤保险补偿","只能依照有关民事法律的规定向本单位提出赔偿","除依法享有工伤保险外，可以依照有关民事法律的规定向本单位提出赔偿","依法享有工伤保险，但应当首先向本单位提出民事赔偿"],"correctAnswer":"除依法享有工伤保险外，可以依照有关民事法律的规定向本单位提出赔偿"},
+{"id":48,"type":"single","question":"依据《中华人民共和国安全生产法》，事故调查处理应当按照科学严谨、依法依规、实事求是、注重实效的原则，及时、准确地查清（），查明事故性质和责任，评估应急处置工作，总结事故教训，提出整改措施，并对事故责任单位和人员提出处理建议。","options":["事故原因","事故类型","事故影响","事故损失"],"correctAnswer":"事故原因"},
+{"id":49,"type":"single","question":"依据《中华人民共和国安全生产法》，生产经营单位（）以任何形式与从业人员订立协议，免除或者减轻其对从业人员因生产安全事故伤亡依法应承担的责任。","options":["可以","经有关部门批准可以","不得","一般不得"],"correctAnswer":"不得"},
+{"id":50,"type":"single","question":"依据《中华人民共和国安全生产法》，从业人员发现直接危及人身安全的紧急情况时，（）或者在采取可能的应急措施后撤离作业场所。","options":["采取一切技术手段抢险救灾","自行判断安全风险","在采取必要的个人防护措施后在现场静观事态变化","有权停止作业"],"correctAnswer":"有权停止作业"},
+{"id":51,"type":"single","question":"依据《中华人民共和国安全生产法》，生产经营单位应当建立安全风险（）制度，按照安全风险分级采取相应的管控措施。","options":["分级管控","各项措施","管控措施","分类指导"],"correctAnswer":"分级管控"},
+{"id":52,"type":"single","question":"依据《中华人民共和国安全生产法》，安全生产工作应当以人为本，坚持（）、生命至上，把保护人民生命安全摆在首位，树牢安全发展理念，坚持安全第一、预防为主、综合治理的方针，从源头上防范化解重大安全","options":["人民至上","安全至上","国家利益至上","人民利益至上"],"correctAnswer":"人民至上"},
+{"id":53,"type":"single","question":"依据《中华人民共和国安全生产法》，安全生产工作实行管行业必须管安全、管业务必须管安全、（），强化和落实生产经营单位主体责任与政府监管责任，建立生产经营单位负责、职工参与、政府监管、行业自律和社会监督的机制。","options":["管生产经营必须管安全","管生产必须管安全","管经营必须管安全","管企业必须管安全"],"correctAnswer":"管生产经营必须管安全"},
+{"id":54,"type":"single","question":"依据《中华人民共和国安全生产法》，从业人员在作业过程中，应当严格落实（），遵守本单位的安全生产规章制度和操作规程，服从管理，正确佩戴和使用劳动防护用品。","options":["一岗双责","岗位安全责任","安全生产责任","规章制度"],"correctAnswer":"岗位安全责任"},
+{"id":55,"type":"single","question":"依据《中华人民共和国消防法》，我国消防工作贯彻（）的方针。","options":["以消为主、防消结合","预防为主、防消结合","专门机关与群众相结合","以防为主、以消为辅"],"correctAnswer":"预防为主、防消结合"},
+{"id":56,"type":"single","question":"依据《中华人民共和国消防法》，我国的消防工作实行（）责任制，建立健全社会化的消防工作网络。","options":["消防安全","政府领导","消防监督","防火安全"],"correctAnswer":"消防安全"},
+{"id":57,"type":"single","question":"依据《中华人民共和国消防法》，消防安全重点单位应当对（）进行岗前消防安全培训，定期组织消防安全培训和消防演练。","options":["消防安全重点部位的职工","专职消防队员","安全员","职工"],"correctAnswer":"职工"},
+{"id":58,"type":"single","question":"依据《中华人民共和国消防法》，单位的（）是本单位的消防安全责任人。","options":["主要负责人","安全管理人员","部门负责人","消防安全管理人"],"correctAnswer":"主要负责人"},
+{"id":59,"type":"single","question":"依据《中华人民共和国突发事件应对法》，突发事件是指突然发生，造成或者可能造成严重社会危害，需要采取应急处置措施予以应对的自然灾害、（）、公共卫生事件和社会安全事件。","options":["交通拥堵","事故灾难","群众集会","交通灾害"],"correctAnswer":"事故灾难"},
+{"id":60,"type":"single","question":"依据《生产安全事故应急预案管理办法》，生产经营单位（）负责组织编制和实施本单位的应急预案，并对应急预案的真实性和实用性负责。","options":["主要负责人","安全总监","安全管理人员","总工程师"],"correctAnswer":"主要负责人"},
+{"id":61,"type":"single","question":"依据《城市轨道交通运营管理规定》（中华人民共和国交通运输部令2018年第8号），（）应当按照法律法规的规定取得职业准入资格。","options":["列车驾驶员","行车调度员","行车值班员","站务员"],"correctAnswer":"列车驾驶员"},
+{"id":62,"type":"single","question":"依据《城市轨道交通运营管理规定》（中华人民共和国交通运输部令2018年第8号），运营单位应当定期组织运营突发事件应急演练，其中综合应急预案演练和专项应急预案演练（）至少组织一次。","options":["每两年","每年","每半年","每季度"],"correctAnswer":"每半年"},
+{"id":63,"type":"single","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》（交运规〔2024〕10号），城市轨道交通日常隐患排查是指结合班组、岗位日常工作组织开展的经常性隐患排查，排查范围应覆盖日常生产作业环节，排查频率应为（）。","options":["每周不少于1次","每周不少于2次","每日1次","每月不少于1次"],"correctAnswer":"每周不少于1次"},
+{"id":64,"type":"single","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》（交运规〔2024〕10号），城市轨道交通运营安全风险分级管控和隐患排查治理工作坚持目标导向、全面覆盖、科学施策、（）的原则。","options":["闭环管理","安全生产","逐级负责","以人为本"],"correctAnswer":"闭环管理"},
+{"id":65,"type":"single","question":"依据《城市轨道交通运营安全隐患排查规范》，列车运行隐患排查中，列车驾驶员的要求不包括（）。","options":["取得相应资格证书","熟悉突发事件应急预案","具备一般故障辨识能力","无安全背景审查要求"],"correctAnswer":"无安全背景审查要求"},
+{"id":66,"type":"single","question":"依据《城市轨道交通运营安全隐患排查规范》，重大隐患的判定标准不包括（）。","options":["造成人员死亡","造成5000万元及以上直接经济损失","造成连续中断行车6小时及以上","造成人员轻伤"],"correctAnswer":"造成人员轻伤"},
+{"id":67,"type":"single","question":"依据《城市轨道交通运营安全隐患排查规范》，运营单位每年至少开展（）次运营安全隐患定期排查。","options":["1","2","3","4"],"correctAnswer":"1"},
+{"id":68,"type":"single","question":"依据《城市轨道交通运营安全隐患排查规范》，运营单位开展专项排查的时机不包括（）。","options":["法律法规变化后","季节性气候变化时","日常运营无异常时","新线开通前"],"correctAnswer":"日常运营无异常时"},
+{"id":69,"type":"single","question":"依据《城市轨道交通运营安全隐患排查规范》，运营单位隐患排查的组织形式不包括（）。","options":["内部自查","第三方机构排查","行业互查","随机抽查"],"correctAnswer":"随机抽查"},
+{"id":70,"type":"single","question":"依据《城市公共交通条例》，城市公共交通工作应当坚持中国共产党的领导，坚持以（）为中心，坚持城市公共交通公益属性，落实城市公共交通优先发展战略，构建安全、便捷、高效、绿色、经济的城市公共交通体","options":["安全","人民","发展","绿色"],"correctAnswer":"人民"},
+{"id":71,"type":"single","question":"依据《城市公共交通条例》，城市公共交通企业应当按照运营服务协议或者城市人民政府城市公共交通主管部门的要求配备城市公共交通车辆，并按照规定设置车辆运营服务（）。","options":["标识","代码","信息","内容"],"correctAnswer":"标识"},
+{"id":72,"type":"single","question":"依据《城市公共交通条例》，城市公共交通企业应当加强运营调度管理，在保障安全的前提下提高运行（）和运行效率。","options":["服务率","准点率","舒适率","安全率"],"correctAnswer":"准点率"},
+{"id":73,"type":"single","question":"依据《城市公共交通条例》，城市人民政府城市公共交通主管部门应当定期组织开展城市公共交通企业运营（）评价，并将评价结果向社会公布","options":["满意度","运营质量","乘客体验","服务质量"],"correctAnswer":"服务质量"},
+{"id":74,"type":"single","question":"依据《城市轨道交通服务质量评价规范》，城市轨道交通服务质量评价包括乘客满意度评价、服务保障能力评价和（）评价，基准分值1000分。","options":["线路运营能力","应急处置能力","安全营运能力","运营服务关键指标"],"correctAnswer":"运营服务关键指标"},
+{"id":75,"type":"single","question":"依据《城市轨道交通服务质量评价规范》，线路服务质量评价出现（）情况，每起核减5分。","options":["发生5分钟以上（含）15分钟以下延误事件的","发生15分钟以上（含）30分钟以下延误事件的","连续中断行车（指线路中有2个及以上车站或区间发生行车中断）30分钟以上（含）2小时以下","发生一般运营突发事件的"],"correctAnswer":"发生5分钟以上（含）15分钟以下延误事件的"},
+{"id":76,"type":"single","question":"依据《城市轨道交通服务质量评价规范》，列车正点率指的是统计期内（）。","options":["晚点列车次数与正点列车次数之比","正点列车次数与晚点列车次数之比","正点列车次数与实际开行列车次数之比","实际开行列车次与正点列车次数之比"],"correctAnswer":"正点列车次数与实际开行列车次数之比"},
+{"id":77,"type":"single","question":"依据《城市轨道交通运营管理规定》，运营单位应当在车厢提供城市轨道交通线网示意图、列车运行方向、到站、换乘和（）等信息。","options":["列车故障","开关车门提示","列车启动提示","车次"],"correctAnswer":"开关车门提示"},
+{"id":78,"type":"single","question":"依据《城市轨道交通初期运营前安全评估规范》，运营单位应按规定建立突发事件应急预案，强化“（）”主动防御。","options":["响应、巡查、管控","接报、督查、治理","调度、预警、响应","应急、监测、封控"],"correctAnswer":"响应、巡查、管控"},
+{"id":79,"type":"single","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，隐患分为重大隐患和（）两个等级。","options":["较小隐患","较大隐患","严重隐患","一般隐患"],"correctAnswer":"一般隐患"},
+{"id":80,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，运营单位应配备酒精检测等设备，有条件的可配备毒品检测设备，在出勤时通过检测、（）等方式对驾驶员状态进行检查。","options":["抽查","观察","问询","测量"],"correctAnswer":"问询"},
+{"id":81,"type":"single","question":"依据《城市轨道交通运营突发事件应急演练管理办法》，运营单位应建立城市轨道交通运营突发事件综合应急预案、专项应急预案和（）。","options":["突发应急预案","现场处置方案","现场抢险方案","应急支援方案"],"correctAnswer":"现场处置方案"},
+{"id":82,"type":"single","question":"依据《城市轨道交通运营突发事件应急演练管理办法》，运营单位专项应急预案演练，鼓励采用事前不通知演练时间、地点和（）的突击式演练，鼓励开展多点位多事件的复合性演练。","options":["级别","内容","形式","人员"],"correctAnswer":"内容"},
+{"id":83,"type":"single","question":"依据《城市轨道交通运营突发事件应急演练管理办法》，评估人员应当具备相应专业技能和工作经验，提前熟悉相关应急预案、（）和管理制度，全程观察研判应急演练开展情况，独立、客观地开展评估工作。","options":["演练实施方案","处置流程","人员职责","现场处置方案"],"correctAnswer":"演练实施方案"},
+{"id":84,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，限界系指限定车辆运行及轨道区周围构筑物超越的（）。","options":["最大值","边沿线","内距线","轮廓线"],"correctAnswer":"轮廓线"},
+{"id":85,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，道岔系指车辆从一股轨道转入或越过另一股轨道的（）连接设备。","options":["信号","防护","线路","轨道"],"correctAnswer":"线路"},
+{"id":86,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，车辆系指在城市轨道交通线路上可编组运行的（）。","options":["单节车","列车","动车","拖车"],"correctAnswer":"单节车"},
+{"id":87,"type":"single","question":"依据《城市客运术语第3部分：城市轨道交通》，牵引系统系指从牵引网获取电流，为列车提供牵引及（）的设备及控制系统的总称。","options":["气制动力","电制动力","摩擦制动","监控"],"correctAnswer":"电制动力"},
+{"id":88,"type":"single","question":"依据《城市轨道交通列车驾驶员技能和素质要求第1部分：地铁、轻轨和单轨》，规定了城市轨道交通列车驾驶员的基本素质、理论知识、岗位技能、上岗要求和（）。","options":["应急处置能力","培训学时","岗位标准","继续教育"],"correctAnswer":"继续教育"},
+{"id":89,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，驾驶员无法看清信号机显示、道岔位置时，应停车确认，严禁（）行车。","options":["主观","推断","盲目","臆测"],"correctAnswer":"臆测"},
+{"id":90,"type":"single","question":"依据《城市轨道交通运营技术规范》，客室车门应具有安全联锁，确保车速大于（）时不能开启，车门未全关闭时不能启动列车。","options":["3km/h","5km/h","10km/h","15km/h"],"correctAnswer":"5km/h"},
+{"id":91,"type":"single","question":"依据《城市轨道交通运营管理规定》，地面、高架线路沿线建（构）筑物或者植物不得妨碍行车瞭望，不得侵入城市轨道交通（）的限界。","options":["线路","车辆","设备","接触网"],"correctAnswer":"线路"},
+{"id":92,"type":"single","question":"依据《城市公共交通乘客满意度评价方法第3部分：城市轨道交通》，乘客满意度指的是统计期内，城市公共交通乘客对公共交通服务的（）、安全可靠性及便捷舒适度等方面体验的满意程度。","options":["可及性","可得性","可达性","可用性"],"correctAnswer":"可得性"},
+{"id":93,"type":"single","question":"依据《城市公共交通乘客满意度评价方法第3部分：城市轨道交通》，列车运行的安全风险可控指标，可按列车运行作业过程进行下级指标分解。列车运行作业过程包括停站、开关门、（）等。","options":["出入段","区间运行","折返","洗车"],"correctAnswer":"区间运行"},
+{"id":94,"type":"single","question":"依据《交通运输企业安全生产标准化建设基本规范第15部分：城市轨道交通运营企业》，作业管理中，应制定并落实列车驾驶员（）档案管理制度，实行一人一档。","options":["执业资格","诚信与考核","职业健康","行车安全"],"correctAnswer":"行车安全"},
+{"id":95,"type":"single","question":"依据《交通运输企业安全生产标准化建设基本规范第15部分：城市轨道交通运营企业》，列车驾驶员脱离本岗位连续（）以上，应经过教育培训，考核合格后，方可上岗。","options":["2个月","3个月","６个月","12个月"],"correctAnswer":"６个月"},
+{"id":96,"type":"single","question":"依据《交通运输企业安全生产标准化建设基本规范第15部分：城市轨道交通运营企业》，应监督、指导从业人员遵守安全生产和职业健康规章制度、操作规程，杜绝违章指挥、违规作业和（）的“三违”行为。","options":["违反管理规定","违规调度","违规施工","违反劳动纪律"],"correctAnswer":"违反劳动纪律"},
+{"id":97,"type":"single","question":"依据《城市轨道交通客运服务规范》，为乘客提供的公益或商业服务应不影响（），并不降低服务质量。","options":["乘车","环境","票价","安全"],"correctAnswer":"安全"},
+{"id":98,"type":"single","question":"依据《城市轨道交通客运服务规范》，在城市轨道交通车站外（）范围内提供清晰、明确、设置合理、引导连续和统一的城市轨道交通导向标志","options":["300米","500米","800米","1000米"],"correctAnswer":"800米"},
+{"id":99,"type":"single","question":"依据《城市轨道交通客运服务规范》，列车上应至少设置（）处供轮椅停放的位置，应有乘轮椅者适用的抓握或固定装置。","options":["一","二","三","四"],"correctAnswer":"一"},
+{"id":100,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，地震烈度为6(含)至7(不含)度的，列车运行速度不应超过（）。","options":["15km/h","25km/h","30km/h","45km/h"],"correctAnswer":"25km/h"},
+{"id":101,"type":"single","question":"依据《城市轨道交通运营安全评估管理办法》，城市轨道交通工程项目原则上在初期运营（）内转入正式运营。","options":["1年","3年","5年","7年"],"correctAnswer":"3年"},
+{"id":102,"type":"single","question":"依据《城市轨道交通运营技术规范》，城市轨道交通工程试运行时间应不少于（），初期运营时间应不少于（）。","options":["1个月，半年","3个月，1年","6个月，1年","1年，2年"],"correctAnswer":"3个月，1年"},
+{"id":103,"type":"single","question":"依据《城市轨道交通正式运营前安全评估规范》（交办运〔2023〕57号），针对城市轨道交通调车作业防护距离不足可能导致形成事故的风险，在尽头线上进行调车作业时，距线路终端应有（）m的安全距离。","options":["10","5","15","20"],"correctAnswer":"10"},
+{"id":104,"type":"single","question":"依据《城市轨道交通正式运营前安全评估规范》，地下和高架线路组织乘客区间疏散时，按规定执行区间接触轨停电，启动相应环控模式，告知乘客疏散方向，车站人员前往迫停地点引导疏散。线路恢复后，组织疏散区间上下行首列车限速（）km/h通过，确认无人员及物品遗留后恢复正常","options":["10","15","25","30"],"correctAnswer":"25"},
+{"id":105,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，列车在地下或高架线路发生火灾、爆炸、毒气攻击等事件时，列车不能维持进站或继续运行无法确保安全的，应立即组织区间疏散，驾驶员应向乘客告知疏散方向，组织乘客逃生，并报告（）。","options":["车站值班站长","事故处理主任","现在总指挥","行车调度人员"],"correctAnswer":"行车调度人员"},
+{"id":106,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，突发情况处置完毕，经安全检查、系统功能测试验证或安全评估确认具备（）条件后，方可恢复正常","options":["运营条件","行车状态","安全行车","安全服务"],"correctAnswer":"安全行车"},
+{"id":107,"type":"single","question":"依据《城市轨道交通行车组织管理办法》，驾驶员应及时报告列车打滑等情况，合理控制速度和提前采取制动措施，尽量避免列车（）。","options":["空转","紧急制动","冲标","迫停"],"correctAnswer":"紧急制动"},
+{"id":108,"type":"single","question":"依据《城市轨道交通列车驾驶员技能和素质要求第1部分：地铁、轻轨和单轨》，列车驾驶员视力基本素质要求，双眼裸眼视力不低于（）或矫正视力不低于（）无色盲、色弱，听力正常","options":["0.8(4.9）；1.0(5.0)","0.7(4.8）；1.0(5.0)","0.7(4.8）；0.9(4.9)","0.8(4.8）；1.0(5.0)"],"correctAnswer":"0.8(4.9）；1.0(5.0)"},
+{"id":109,"type":"single","question":"依据《城市轨道交通运营设备维修与更新技术规范第2部分：车辆》，计划修可包括列检、月检、定修、（）、大修。","options":["架修","临修","日检","故障修"],"correctAnswer":"架修"},
+{"id":110,"type":"single","question":"依据《城市轨道交通运营设备维修与更新技术规范第2部分：车辆》，车辆在（）运行状态下需要进行架修。","options":["大于1年","大于2年","60万公里或5年","120万公里或10年"],"correctAnswer":"60万公里或5年"},
+{"id":111,"type":"single","question":"依据《城市轨道交通运营设备维修与更新技术规范第2部分：车辆》，运营单位根据车辆各系统不同的技术状态，可采用（）的方式进行集中维修","options":["专项修","状态修","定修","月检"],"correctAnswer":"专项修"},
+{"id":112,"type":"single","question":"依据《城市轨道交通运营设备维修与更新技术规范第2部分：车辆》，（）对车辆各系统或部件进行分解、清洁、检查、探伤和整修的综合修理，并对列车性能进行全面检测、调试以及试验，以恢复车辆设计的要求，可以结合技术改造对部分系统进行升级，提高原有性能。","options":["列检","定修","架修","大修"],"correctAnswer":"大修"},
+{"id":113,"type":"single","question":"依据《城市轨道交通行车组织规则》，手信号可采用信号旗、信号灯和（）三种方式显示，显示动作应规范、准确。","options":["电台","对讲机","徒手","手电筒"],"correctAnswer":"徒手"},
+{"id":114,"type":"multi","question":"依据《城市轨道交通运营管理规定》，运营单位应当按照有关法规要求建立运营突发事件应急预案体系，制定（）。","options":["综合应急预案","双盲应急演练预案","专项应急预案","现场处置方案"],"correctAnswer":["综合应急预案","专项应急预案","现场处置方案"]},
+{"id":115,"type":"multi","question":"依据《城市轨道交通正式运营前安全评估规范》，运营单位应落实正常行车组织方案，遵守（）的各项行车安全要求。","options":["运营前准备","运营过程中","运营线路","运营结束"],"correctAnswer":["运营前准备","运营过程中","运营结束"]},
+{"id":116,"type":"multi","question":"依据《城市轨道交通正式运营前安全评估规范》，运营过程中列车驾驶员应不间断加强瞭望，注意观察（）及列车在站作业情况；遇无法瞭望信号、信号中断、联络中断等无法确认行车安全条件时应立即停车。","options":["仪表","指示灯","显示屏的显示","线路状态"],"correctAnswer":["仪表","指示灯","显示屏的显示","线路状态"]},
+{"id":117,"type":"multi","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，风险管控措施（）发生运营险性事件的，应急处置和调查处理后，应及时对相关工作进行评估总结，对管控措施进行完善改进。","options":["弱化","错误","失效","缺失"],"correctAnswer":["弱化","失效","缺失"]},
+{"id":118,"type":"multi","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，运营单位应结合（）等，对风险管控措施的有效性进行跟踪，掌握风险状态和变化趋势，补充新辨识的风险，补强和完善风险管控措施，并及时更新风险数据库。","options":["隐患排查","隐患登记","事故经验教训","隐患规律"],"correctAnswer":["隐患排查","事故经验教训"]},
+{"id":119,"type":"multi","question":"依据《城市轨道交通行车组织管理办法》，行车计划，包括（）。","options":["列车运行图","车辆运用计划","施工作业计划","乘务计划"],"correctAnswer":["列车运行图","车辆运用计划","施工作业计划","乘务计划"]},
+{"id":120,"type":"multi","question":"依据《城市轨道交通运营指标体系》，以下属于“伤亡人数”统计范围的有（）。","options":["死亡人数","重伤人数","轻伤人数","送医人数"],"correctAnswer":["死亡人数","重伤人数","轻伤人数"]},
+{"id":121,"type":"multi","question":"依据《城市客运术语第3部分：城市轨道交通》，轨道由（）及轨下基础等组成的工程结构。","options":["钢轨","配件","扣件","道岔"],"correctAnswer":["钢轨","配件","扣件","道岔"]},
+{"id":122,"type":"multi","question":"依据《城市客运术语第3部分：城市轨道交通》，钢轨磨耗包括（）及波浪形磨耗。","options":["轨底磨耗","轨腰磨耗","轨头垂直磨耗","侧面磨耗"],"correctAnswer":["轨头垂直磨耗","侧面磨耗"]},
+{"id":123,"type":"multi","question":"依据《城市客运术语第3部分：城市轨道交通》，道床的主要作用包括以下（）。","options":["支撑轨枕","固定轨枕","将荷载传递至路基面","防止钢轨锈蚀"],"correctAnswer":["支撑轨枕","固定轨枕","将荷载传递至路基面"]},
+{"id":124,"type":"multi","question":"依据《城市轨道交通列车驾驶员技能和素质要求第1部分：地铁、轻轨和单轨》，列车驾驶员应心理健康，具有良好的（）。","options":["心理素质","应急反应能力","故障处置能力","职业素养"],"correctAnswer":["心理素质","应急反应能力"]},
+{"id":125,"type":"multi","question":"依据《城市轨道交通行车组织规则》，行车组织工作应坚持安全生产的方针，遵循（）的原则。","options":["高度集中","统一指挥","协同指挥","逐级负责"],"correctAnswer":["高度集中","统一指挥","逐级负责"]},
+{"id":126,"type":"multi","question":"依据《城市轨道交通行车组织规则》，列车驾驶员凭（）显示行车，运行中应确认进路、道岔位置正确，临时停车时，不应擅自后退。","options":["车载信号","地面信号","调车手信号","信号机"],"correctAnswer":["车载信号","地面信号","调车手信号"]},
+{"id":127,"type":"multi","question":"依据《城市轨道交通运营安全评估规范第1部分：地铁和轻轨》，列车驾驶员的培训内容包括（）和乘客紧急疏散。","options":["出退勤作业","列车整备和出入场作业","正线和车辆基地作业","列车故障应急处置和救援"],"correctAnswer":["出退勤作业","列车整备和出入场作业","正线和车辆基地作业","列车故障应急处置和救援"]},
+{"id":128,"type":"multi","question":"2020年12月19日，某城市有轨电车正常运行至一路口时，与一辆违章闯红灯左转的出租汽车发生碰撞，造成局部中断运营45分钟，清客2列次。事件的直接原因是社会车辆在机动车道平交路口违章调头导致列车撞击。对于案例中涉及的有轨电车相关要求，下列描述正确的是（）。","options":["城市轨道交通系统，除有轨电车外均应纳入城市轨道交通建设规划并履行报批程序","有轨电车沿线建（构）筑物、植物可能妨碍行车瞭望或者侵入线路限界的，责任单位应当及时采取措施消除","对未配备车站行车人员的有轨电车线路，应设置必要的通信和视频监控设备，对车站情况进行有效监控","有轨电车不得载客救援，空驶列车救援连挂后运行速度不应超过40km/h"],"correctAnswer":["城市轨道交通系统，除有轨电车外均应纳入城市轨道交通建设规划并履行报批程序","有轨电车沿线建（构）筑物、植物可能妨碍行车瞭望或者侵入线路限界的，责任单位应当及时采取措施消除","对未配备车站行车人员的有轨电车线路，应设置必要的通信和视频监控设备，对车站情况进行有效监控"]},
+{"id":129,"type":"multi","question":"依据《城市公共交通条例》，因大型群众性活动等情形出现公共交通客流集中、正常运营服务安排难以满足需求的，城市公共交通企业应当按照城市人民政府城市公共交通主管部门的要求，及时采取（）等措施，保障","options":["增开临时班次","缩短发车间隔","抽线","延长运营时间"],"correctAnswer":["增开临时班次","缩短发车间隔","延长运营时间"]},
+{"id":130,"type":"multi","question":"依据《城市轨道交通运营管理规定》，运营单位应当配置满足运营需求的从业人员，按相关标准进行安全和技能培训教育，并对城市轨道交通（）及通信工等重点岗位人员进行考核，考核不合格的，不得从事岗位工作","options":["列车驾驶员","行车调度员","行车值班员","信号工"],"correctAnswer":["列车驾驶员","行车调度员","行车值班员","信号工"]},
+{"id":131,"type":"multi","question":"依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，其中行车组织类风险有（）。","options":["调度指挥","列车运行","行车作业","施工管理"],"correctAnswer":["调度指挥","列车运行","行车作业","施工管理"]},
+{"id":132,"type":"multi","question":"依据《城市轨道交通运营指标体系》，以下属于城市轨道交通系统的有（）。","options":["地铁系统","轻轨系统","单轨系统","现代有轨电车"],"correctAnswer":["地铁系统","轻轨系统","单轨系统","现代有轨电车"]},
+{"id":133,"type":"multi","question":"城市公共交通企业应当定期对重点岗位人员进行（）及应急处置的基本知识等方面的培训和考核，经考核合格的方可上岗作业。","options":["岗位职责","操作规程","服务规范","安全防范"],"correctAnswer":["岗位职责","操作规程","服务规范","安全防范"]},
+{"id":134,"type":"multi","question":"依据《城市轨道交通客运服务规范》，运营单位应以（）、文明为目标，为乘客提供持续改进的服务。","options":["安全","准时","便捷","舒适"],"correctAnswer":["安全","准时","便捷","舒适"]},
+{"id":135,"type":"multi","question":"依据《城市轨道交通客运服务规范》，列车上应有各种安全标志，包括（）、车门紧急解锁操作提示、消防设备标志等。","options":["车门防夹警示","车门防倚靠警示","车门编号标志","紧急报警提示"],"correctAnswer":["车门防夹警示","车门防倚靠警示","紧急报警提示"]},
+{"id":136,"type":"multi","question":"依据《城市轨道交通客运服务规范》，服务用语应表达（）、礼貌。","options":["规范","准时","清晰","文明"],"correctAnswer":["规范","清晰","文明"]},
+{"id":137,"type":"judge","question":"（）依据《城市轨道交通运营管理规定》，运营单位应当对列车驾驶员定期开展心理测试，对不符合要求的及时调整工作岗位。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":138,"type":"judge","question":"（）依据《城市轨道交通初期运营前安全评估规范》，试运行前应完成系统联调。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":139,"type":"judge","question":"（）依据《城市轨道交通正式运营前安全评估规范》，列车行驶在区间发生接触网(轨)失电时，列车驾驶员应立即拉停列车，做好乘客服务广播，及时报告行车调度人员。","options":["正确","错误"],"correctAnswer":"错误"},
+{"id":140,"type":"judge","question":"（）依据《城市轨道交通正式运营前安全评估规范》，列车驾驶员不得在道岔、咽喉区擅自停车。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":141,"type":"judge","question":"（）依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，城市轨道交通风险等级是由风险点发生风险事件可能性和后果严重程度的组合决定。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":142,"type":"judge","question":"（）依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，城市轨道交通风险等级从高到低划分为重大、较大、一般、较小四个等级。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":143,"type":"judge","question":"（）依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，一般隐患具有危害或治理难度较小，能够快速消除等特点。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":144,"type":"judge","question":"（）依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，隐患日常排查是指结合班组、岗位日常工作组织开展的经常性隐患排查，其中，班组负责人至少每周组织排查1次。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":145,"type":"judge","question":"（）依据《城市轨道交通行车组织管理办法》，列车接驳疏散是指采用列车进入区间驳运迫停列车人员的疏散方式。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":146,"type":"judge","question":"（）依据《城市轨道交通行车组织管理办法》，退行是指列车以原运行方向相反的方向运行，运行距离一般不超过一个区间。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":147,"type":"judge","question":"（）依据《城市轨道交通行车组织管理办法》，遇雾、霾、雨、雪、沙尘等恶劣天气瞭望困难时，地面及高架线路列车应开启前照灯，限速运行，适时鸣笛。当瞭望距离不足100米、50米、30米时，列车运行速度分别不应超过50km/h、30km/h、15km/h。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":148,"type":"judge","question":"（）依据《城市客运术语第3部分：城市轨道交通》，明确“电气制动”是指在电机切断电源后，产生和电机实际转向相反的制动力矩，使电机迅速停转的制动方式。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":149,"type":"judge","question":"（）依据《城市轨道交通运营指标体系》，运营事故系指城市轨道交通运营过程中发生的因列车撞击、脱轨，设施设备故障、损毁，以及大客流等情况，造成人员伤亡、行车中断、财产损失的突发事故。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":150,"type":"judge","question":"（）依据《城市客运术语第3部分：城市轨道交通》，冷滑系指在接触网(轨)受电的情况下,由其他机车牵引列车滑行的动态试验。","options":["正确","错误"],"correctAnswer":"错误"},
+{"id":151,"type":"judge","question":"（）依据《城市客运术语第3部分：城市轨道交通》，热滑系指在接触网(轨)带电情况下,由电客车的受电弓(集电靴)从架空接触网(接触轨)取电牵引运行的动态试验。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":152,"type":"judge","question":"（）依据《城市客运术语第3部分：城市轨道交通》，正线系指载客列车运营的贯穿全程的线路。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":153,"type":"judge","question":"（）依据《城市客运术语第3部分：城市轨道交通》，配线系指除正线外，在运行过程中为列车提供收发车、折返、联络、安全保障、临时停车等功能，通过道岔与正线相互联络的线路。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":154,"type":"judge","question":"（）依据《城市客运术语第3部分：城市轨道交通》，连挂系指两列列车在正线或车辆基地内首尾相联编组形成具有正常运行功能的一列列车的动作。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":155,"type":"judge","question":"（）依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，专项排查是运营单位在一定范围、领域组织开展的针对特定隐患的排查，不可与运营单位专项检查、安全评估、季节性和关键时期检查等工作结合开展。","options":["正确","错误"],"correctAnswer":"错误"},
+{"id":156,"type":"judge","question":"（）依据《城市轨道交通列车驾驶员技能和素质要求第1部分：地铁、轻轨和单轨》明确：列车驾驶员转入不同线路从事驾驶工作前，应经过2个月的学习考试。","options":["正确","错误"],"correctAnswer":"错误"},
+{"id":157,"type":"judge","question":"（）依据《城市轨道交通列车驾驶员技能和素质要求第1部分：地铁、轻轨和单轨》明确：列车驾驶员应符合无酗酒赌博等不良嗜好，无吸毒等违法犯罪记录。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":158,"type":"judge","question":"《城市轨道交通列车驾驶员技能和素质要求第1部分：地铁、轻轨和单轨》描述，列车驾驶员应身体健康，无精神病史或癫痫病史，无运动功能障碍或妨碍安全驾驶的疾病。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":159,"type":"judge","question":"（）依据《城市轨道交通行车组织管理办法》，信号机内方是指信号机防护的方面，反之为外方。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":160,"type":"judge","question":"（）依据《城市轨道交通行车组织规则》，调车作业：除列车在车站到发以外的一切机车、车辆或列车有目的的移动作业。","options":["正确","错误"],"correctAnswer":"错误"},
+{"id":161,"type":"judge","question":"（）依据《城市轨道交通行车组织规则》，书面命令采用书面记录制，特殊情况下可先发口头命令，事后补交书面命令。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":162,"type":"judge","question":"（）依据《城市轨道交通行车组织规则》，在列车上发生火灾时，列车驾驶员应立即报告行车调度员，并立即执行就地疏散程序。","options":["正确","错误"],"correctAnswer":"错误"},
+{"id":163,"type":"judge","question":"（）依据《城市轨道交通供电系统运营技术规范(试行)》，直流牵引供电的正线接触网(轨)正常运行方式下应采用双边供电。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":164,"type":"judge","question":"（）依据《城市轨道交通供电系统运营技术规范(试行)》，车辆基地库内应设置可靠的股道带电显示装置，清晰醒目显示接触网(轨)带电/无电状","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":165,"type":"judge","question":"（）依据《城市轨道交通信号系统车载设备人机界面显示规范》，城市轨道交通信号系统车载设备人机界面应以图标、文本或声音，显示或向司机提示列车运行信息。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":166,"type":"judge","question":"（）依据《城市轨道交通正式运营前安全评估规范》，列车返回车辆基地后，列车驾驶员应按规定办理退勤手续，如实报告驾驶过程中的异常及处理情况。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":167,"type":"judge","question":"（）依据《城市轨道交通运营安全风险分级管控和隐患排查治理管理办法》，城市轨道交通新线投入初期运营和正式运营时，运营单位应同步组织开展风险全面辨识。初期运营期间，可视情增加辨识频次。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":168,"type":"judge","question":"（）依据《城市轨道交通运营应急能力建设基本要求》，运营单位发生运营险性事件的，应通过多种形式对相关岗位员工开展安全警示教育。","options":["正确","错误"],"correctAnswer":"正确"},
+{"id":169,"type":"judge","question":"（）依据《城市轨道交通运营应急能力建设基本要求》，运营单位应将突发事件案例纳入年度安全培训内容，组织员工学习。","options":["正确","错误"],"correctAnswer":"正确"},
+];
+const EXAM_CONFIG={daily:{name:'日考',single:5,judge:3,multi:2,scorePerQuestion:10,total:10,passLine:80},monthly:{name:'月考',single:35,judge:5,multi:10,scorePerQuestion:2,total:50,passLine:90}};
+const CLEAR_PASSWORD='54491';
+const TYPE_NAMES={single:'单选',judge:'判断',multi:'多选'};
+const TYPE_CLASSES={single:'type-single',judge:'type-judge',multi:'type-multi'};
+let state={mode:'daily',name:'',questions:[],currentIndex:0,answers:{},startTime:null,timerInterval:null,elapsedSeconds:0};
+let rankState={mode:'daily',dateFilter:'all',monthFilter:'all'};
+var currentHistoryMode='daily',currentHistoryName='';
+var pendingPwdAction=null;
+let wrongFilterType='all';
+
+// 数字软键盘功能
+function showKeyboard() {
+    document.getElementById('numericKeyboard').classList.add('show');
+    setTimeout(() => {
+        document.getElementById('loginName').scrollIntoView({behavior: 'smooth', block: 'center'});
+    }, 100);
+}
+
+function hideKeyboard() {
+    document.getElementById('numericKeyboard').classList.remove('show');
+}
+
+function inputNum(num) {
+    var input = document.getElementById('loginName');
+    if (input.value.length < input.maxLength) {
+        input.value += num;
+    }
+}
+
+function deleteNum() {
+    var input = document.getElementById('loginName');
+    input.value = input.value.slice(0, -1);
+}
+
+function clearInput() {
+    document.getElementById('loginName').value = '';
+}
+
+function confirmInput() {
+    hideKeyboard();
+}
+
+// 考试页返回主界面确认
+function confirmBackHome() {
+    showConfirm('返回确认', '确定要返回主界面吗？当前答题进度将不会保存。', function(){
+        hideConfirmModal();
+        goHome();
+    });
+}
+
+// 考试页重新开始确认
+function confirmRestart() {
+    showConfirm('重新开始', '确定要重新开始考试吗？当前答题进度将清空。', function(){
+        hideConfirmModal();
+        stopTimer();
+        startExam();
+    });
+}
+
+function init(){
+    renderHomeStats();
+    document.getElementById('loginName').addEventListener('keypress',function(e){if(e.key==='Enter')startExam()});
+    document.getElementById('pwdInput').addEventListener('keypress',function(e){if(e.key==='Enter')verifyPwd()});
+}
+
+function renderHomeStats(){var counts={single:0,judge:0,multi:0};QUESTION_BANK.forEach(function(q){counts[q.type]=(counts[q.type]||0)+1});var daily=getRecords('daily').length;var monthly=getRecords('monthly').length;document.getElementById('homeStats').innerHTML='<div class="stat-item"><div class="stat-num">'+QUESTION_BANK.length+'</div><div class="stat-label">题库总数</div></div><div class="stat-item"><div class="stat-num">'+counts.single+'</div><div class="stat-label">单选题</div></div><div class="stat-item"><div class="stat-num">'+counts.judge+'</div><div class="stat-label">判断题</div></div><div class="stat-item"><div class="stat-num">'+counts.multi+'</div><div class="stat-label">多选题</div></div><div class="stat-item"><div class="stat-num">'+daily+'</div><div class="stat-label">日考次数</div></div><div class="stat-item"><div class="stat-num">'+monthly+'</div><div class="stat-label">月考次数</div></div>'}
+function showPage(name){
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+    document.getElementById('page-'+name).classList.add('active');
+    window.scrollTo(0,0);
+    hideKeyboard();
+}
+function goHome(){stopTimer();renderHomeStats();showPage('home')}
+function startLogin(mode){state.mode=mode;var cfg=EXAM_CONFIG[mode];var badge=document.getElementById('loginModeBadge');badge.textContent=cfg.name+' · '+cfg.total+'题 · 满分100分 · 合格线'+cfg.passLine+'分';badge.className='mode-badge '+mode;document.getElementById('loginName').value='';showPage('login');setTimeout(function(){document.getElementById('loginName').focus()},100)}
+function startExam(){var name=document.getElementById('loginName').value.trim();if(!name){alert('请输入司机代码');return}state.name=name;var cfg=EXAM_CONFIG[state.mode];var questions=[];['single','judge','multi'].forEach(function(type){var pool=QUESTION_BANK.filter(function(q){return q.type===type});var need=cfg[type];if(pool.length<need){alert(TYPE_NAMES[type]+'题题库不足（需要'+need+'道，只有'+pool.length+'道）');return}var shuffled=pool.slice();for(var i=shuffled.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=shuffled[i];shuffled[i]=shuffled[j];shuffled[j]=tmp}shuffled.slice(0,need).forEach(function(q){var qCopy=JSON.parse(JSON.stringify(q));var opts=q.options.slice();for(var i=opts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=opts[i];opts[i]=opts[j];opts[j]=tmp}qCopy.options=opts;questions.push(qCopy)})});var typeOrder=['single','judge','multi'];questions.sort(function(a,b){return typeOrder.indexOf(a.type)-typeOrder.indexOf(b.type)});state.questions=questions;state.currentIndex=0;state.answers={};state.startTime=Date.now();state.elapsedSeconds=0;document.getElementById('examName').textContent=name;document.getElementById('examModeLabel').textContent=EXAM_CONFIG[state.mode].name;showPage('exam');renderQuestion();startTimer()}
+function startTimer(){if(state.timerInterval)clearInterval(state.timerInterval);state.timerInterval=setInterval(function(){state.elapsedSeconds=Math.floor((Date.now()-state.startTime)/1000);var m=Math.floor(state.elapsedSeconds/60).toString().padStart(2,'0');var s=(state.elapsedSeconds%60).toString().padStart(2,'0');document.getElementById('timer').textContent=m+':'+s},1000)}
+function stopTimer(){if(state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null}}
+function renderQuestion(){var q=state.questions[state.currentIndex];var idx=state.currentIndex;var total=state.questions.length;var cfg=EXAM_CONFIG[state.mode];document.getElementById('qType').textContent=TYPE_NAMES[q.type]+'题';document.getElementById('qType').className='question-type '+TYPE_CLASSES[q.type];document.getElementById('qNum').textContent='第 '+(idx+1)+' 题 / 共 '+total+' 题（'+cfg.scorePerQuestion+'分）';document.getElementById('examProgress').textContent='进度：'+(idx+1)+'/'+total;document.getElementById('progressFill').style.width=((idx+1)/total*100)+'%';document.getElementById('qText').textContent=q.question;var optionsDiv=document.getElementById('qOptions');var letters=['A','B','C','D','E','F','G','H'];var html='<div class="options-list">';q.options.forEach(function(opt,i){var selected=false;if(q.type==='single'||q.type==='judge')selected=state.answers[idx]===opt;else if(q.type==='multi')selected=(state.answers[idx]||[]).indexOf(opt)>=0;html+='<div class="option-item '+(selected?'selected':'')+'" data-opt="'+i+'"><span class="option-letter">'+letters[i]+'</span><span>'+escapeHtml(opt)+'</span></div>'});html+='</div>';optionsDiv.innerHTML=html;optionsDiv.querySelectorAll('.option-item').forEach(function(item){item.addEventListener('click',function(){var opt=q.options[parseInt(item.dataset.opt)];if(q.type==='single'||q.type==='judge')state.answers[idx]=opt;else if(q.type==='multi'){if(!state.answers[idx])state.answers[idx]=[];var pos=state.answers[idx].indexOf(opt);if(pos>=0)state.answers[idx].splice(pos,1);else state.answers[idx].push(opt)}renderQuestion()})});document.getElementById('prevBtn').style.visibility=idx>0?'visible':'hidden';var isLast=idx===total-1;document.getElementById('nextBtn').style.display=isLast?'none':'block';document.getElementById('submitExamBtn').style.display=isLast?'block':'none';updateGridNav()}
+function updateGridNav(){var nav=document.getElementById('gridNav');var html='';state.questions.forEach(function(q,i){var cls='grid-cell';if(i===state.currentIndex)cls+=' current';if(isAnswered(i))cls+=' answered';html+='<div class="'+cls+'" data-idx="'+i+'">'+(i+1)+'</div>'});nav.innerHTML=html;nav.querySelectorAll('.grid-cell').forEach(function(cell){cell.addEventListener('click',function(){state.currentIndex=parseInt(cell.dataset.idx);renderQuestion()})})}
+function isAnswered(idx){var q=state.questions[idx];var ans=state.answers[idx];if(q.type==='single'||q.type==='judge')return ans!==undefined;if(q.type==='multi')return ans&&ans.length>0;return false}
+function prevQuestion(){if(state.currentIndex>0){state.currentIndex--;renderQuestion()}}
+function nextQuestion(){if(state.currentIndex<state.questions.length-1){state.currentIndex++;renderQuestion()}}
+function confirmSubmit(){var unanswered=[];state.questions.forEach(function(q,i){if(!isAnswered(i))unanswered.push(i+1)});var msg='';if(unanswered.length>0)msg+='还有 '+unanswered.length+' 道题未作答（第'+unanswered.join('、')+'题）\n\n';msg+='确定要交卷吗？交卷后将自动判分并保存成绩。';showConfirm('交卷确认',msg,function(){submitExam()})}
+function submitExam(){hideConfirmModal();stopTimer();var cfg=EXAM_CONFIG[state.mode];var totalScore=0,correctCount=0,wrongCount=0,unansweredCount=0;var typeScores={};var details=[];var wrongUpdates={};state.questions.forEach(function(q,i){var score=0,isCorrect=false;var userAns=state.answers[i];if(!isAnswered(i)){unansweredCount++}else if(q.type==='single'||q.type==='judge'){if(userAns===q.correctAnswer){score=cfg.scorePerQuestion;isCorrect=true;correctCount++}else wrongCount++}else if(q.type==='multi'){var sel=userAns||[];var correct=q.correctAnswer;if(sel.length===correct.length&&sel.every(function(a){return correct.indexOf(a)>=0})){score=cfg.scorePerQuestion;isCorrect=true;correctCount++}else wrongCount++}totalScore+=score;if(!typeScores[q.type])typeScores[q.type]={score:0,total:0,correct:0,count:0};typeScores[q.type].score+=score;typeScores[q.type].count++;if(isCorrect)typeScores[q.type].correct++;details.push({question:q.question,type:q.type,options:q.options,correctAnswer:q.correctAnswer,userAns:userAns,score:score,isCorrect:isCorrect});var qid=q.id;if(!wrongUpdates[qid])wrongUpdates[qid]={total:0,wrong:0,question:q.question,type:q.type,options:q.options,correctAnswer:q.correctAnswer};wrongUpdates[qid].total++;if(!isCorrect)wrongUpdates[qid].wrong++});updateWrongStats(wrongUpdates);var now=new Date();var dateStr=now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0')+'-'+now.getDate().toString().padStart(2,'0');var monthStr=now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0');var record={name:state.name,score:totalScore,correct:correctCount,wrong:wrongCount,unanswered:unansweredCount,time:Math.floor(state.elapsedSeconds/60),date:dateStr,month:monthStr,datetime:now.toLocaleString('zh-CN'),timestamp:now.getTime(),details:details,passLine:cfg.passLine};saveRecord(state.mode,record);var badge=document.getElementById('resultModeBadge');badge.textContent=EXAM_CONFIG[state.mode].name+'成绩 · 合格线'+cfg.passLine+'分';badge.className='mode-badge '+state.mode;document.getElementById('resultScore').textContent=totalScore;var isPass=totalScore>=cfg.passLine;
+// 不合格成绩显示红色
+document.getElementById('resultScore').style.color = isPass ? '#1890ff' : '#f5222d';
+document.getElementById('statCorrect').textContent=correctCount;document.getElementById('statWrong').textContent=wrongCount;document.getElementById('statUnanswered').textContent=unansweredCount;document.getElementById('statTime').textContent=Math.floor(state.elapsedSeconds/60);var levelEl=document.getElementById('resultLevel');if(totalScore>=90){levelEl.textContent='优秀'+(isPass?' · 合格':'');levelEl.className='result-score-level level-excellent'}else if(totalScore>=75){levelEl.textContent='良好'+(isPass?' · 合格':' · 不合格');levelEl.className='result-score-level level-good'}else if(isPass){levelEl.textContent='及格 · 合格';levelEl.className='result-score-level level-pass'}else{levelEl.textContent='不及格 · 不合格';levelEl.className='result-score-level level-fail'}var typeHtml='';['single','judge','multi'].forEach(function(t){var ts=typeScores[t]||{score:0,total:0,correct:0,count:0};typeHtml+='<div class="type-result-item"><span><span class="question-type '+TYPE_CLASSES[t]+'">'+TYPE_NAMES[t]+'</span> '+ts.correct+'/'+ts.count+' 正确</span><span class="score-info">'+ts.score+' / '+(ts.count*cfg.scorePerQuestion)+' 分</span></div>'});document.getElementById('typeResultList').innerHTML=typeHtml;var reviewHtml='';details.forEach(function(d,i){reviewHtml+='<div class="review-item '+(d.isCorrect?'correct':'wrong')+'"><div class="review-item-header"><span class="question-type '+TYPE_CLASSES[d.type]+'">'+TYPE_NAMES[d.type]+'</span><span class="review-item-q">'+escapeHtml(d.question.substring(0,50))+(d.question.length>50?'...':'')+'</span><span style="font-size:13px;color:'+(d.isCorrect?'#52c41a':'#f5222d')+';font-weight:600">'+d.score+'分</span></div><div class="review-item-body"><div style="margin-bottom:8px"><strong>题目：</strong>'+escapeHtml(d.question)+'</div><div style="margin-bottom:8px">';var letters=['A','B','C','D','E','F','G','H'];d.options.forEach(function(opt,oi){var isCorrectOpt=(d.type==='single'||d.type==='judge')?opt===d.correctAnswer:(Array.isArray(d.correctAnswer)&&d.correctAnswer.indexOf(opt)>=0);var isUserOpt=(d.type==='single'||d.type==='judge')?d.userAns===opt:(Array.isArray(d.userAns)&&d.userAns.indexOf(opt)>=0);var style='color:'+(isCorrectOpt?'#52c41a':'#666')+';'+(isCorrectOpt?'font-weight:600;':'');if(isUserOpt&&!isCorrectOpt)style='color:#f5222d;font-weight:600;';reviewHtml+='<div style="'+style+'">'+letters[oi]+'. '+escapeHtml(opt)+(isCorrectOpt?' ✓':'')+(isUserOpt&&!isCorrectOpt?' ✗（你的选择）':'')+'</div>'});reviewHtml+='</div><div><strong>你的答案：</strong>'+(d.userAns?(Array.isArray(d.userAns)?d.userAns.map(escapeHtml).join('、'):escapeHtml(d.userAns)):'未作答')+'</div></div></div>'});document.getElementById('reviewList').innerHTML=reviewHtml;document.getElementById('reviewList').style.display='none';document.querySelectorAll('.review-item-header').forEach(function(h){h.addEventListener('click',function(){h.parentElement.classList.toggle('expanded')})});showPage('result')}
+function toggleReview(){var list=document.getElementById('reviewList');list.style.display=list.style.display==='none'?'block':'none'}
+function getRecords(mode){try{return JSON.parse(localStorage.getItem('exam_'+mode+'_records_v4')||'[]')}catch(e){return[]}}
+function saveRecord(mode,record){var records=getRecords(mode);records.push(record);records.sort(function(a,b){return b.score-a.score||a.timestamp-b.timestamp});localStorage.setItem('exam_'+mode+'_records_v4',JSON.stringify(records))}
+function showRankPage(){rankState={mode:'daily',dateFilter:'all',monthFilter:'all'};document.querySelectorAll('.rank-tab').forEach(function(t){t.classList.toggle('active',t.dataset.mode==='daily')});renderRank();showPage('rank')}
+function switchRankTab(mode){rankState.mode=mode;rankState.dateFilter='all';rankState.monthFilter='all';document.querySelectorAll('.rank-tab').forEach(function(t){t.classList.toggle('active',t.dataset.mode===mode)});document.getElementById('printMonthlyBtn').style.display=(mode==='monthly')?'block':'none';renderRank()}
+function renderRank(){var mode=rankState.mode;var records=getRecords(mode);var dates=Array.from(new Set(records.map(function(r){return r.date}))).sort().reverse();var months=Array.from(new Set(records.map(function(r){return r.month}))).sort().reverse();var filterHtml='';if(mode==='daily'){if(months.length>0){filterHtml+='<select onchange="rankState.monthFilter=this.value;rankState.dateFilter=\'all\';renderRank()"><option value="all">全部月份</option>';months.forEach(function(m){filterHtml+='<option value="'+m+'"'+(rankState.monthFilter===m?' selected':'')+'>'+m+'</option>'});filterHtml+='</select>'}if(dates.length>0){var visibleDates=dates;if(rankState.monthFilter!=='all')visibleDates=dates.filter(function(d){return d.indexOf(rankState.monthFilter)===0});filterHtml+='<select onchange="rankState.dateFilter=this.value;renderRankContent()"><option value="all">全部日期</option>';visibleDates.forEach(function(d){filterHtml+='<option value="'+d+'"'+(rankState.dateFilter===d?' selected':'')+'>'+d+'</option>'});filterHtml+='</select>'}}else{if(months.length>0){filterHtml+='<select onchange="rankState.monthFilter=this.value;rankState.dateFilter=\'all\';renderRank()"><option value="all">全部月份</option>';months.forEach(function(m){filterHtml+='<option value="'+m+'"'+(rankState.monthFilter===m?' selected':'')+'>'+m+'</option>'});filterHtml+='</select>'}}document.getElementById('rankDateFilter').innerHTML=filterHtml;renderMonthStats();document.getElementById('monthStats').style.display='block';renderRankContent()}
+function renderMonthStats(){var mode=rankState.mode;var records=getRecords(mode);if(rankState.monthFilter!=='all')records=records.filter(function(r){return r.month===rankState.monthFilter});var container=document.getElementById('monthStats');if(records.length===0){container.innerHTML='';return}var passLine=EXAM_CONFIG[mode].passLine;var total=records.length;var avgScore=Math.round(records.reduce(function(s,r){return s+r.score},0)/total);var maxScore=Math.max.apply(null,records.map(function(r){return r.score}));var minScore=Math.min.apply(null,records.map(function(r){return r.score}));var passCount=records.filter(function(r){return r.score>=passLine}).length;var passRate=Math.round(passCount/total*100);var personCount=new Set(records.map(function(r){return r.name})).size;var label=rankState.monthFilter==='all'?'全部月份':rankState.monthFilter;var title=mode==='daily'?('📊 '+label+' 月度每日考试情况（合格线'+passLine+'分）'):('📊 '+label+' 月度统计（合格线'+passLine+'分）');container.innerHTML='<div class="month-stats"><div class="month-stats-title">'+title+'</div><div class="month-stats-grid"><div class="month-stat-item"><div class="month-stat-num">'+total+'</div><div class="month-stat-label">考试人次</div></div><div class="month-stat-item"><div class="month-stat-num">'+personCount+'</div><div class="month-stat-label">参考人数</div></div><div class="month-stat-item"><div class="month-stat-num">'+avgScore+'</div><div class="month-stat-label">平均分</div></div><div class="month-stat-item"><div class="month-stat-num" style="color:#52c41a">'+maxScore+'</div><div class="month-stat-label">最高分</div></div><div class="month-stat-item"><div class="month-stat-num" style="color:#f5222d">'+minScore+'</div><div class="month-stat-label">最低分</div></div><div class="month-stat-item"><div class="month-stat-num" style="color:#1890ff">'+passCount+'</div><div class="month-stat-label">合格人数</div></div><div class="month-stat-item"><div class="month-stat-num" style="color:#fa8c16">'+passRate+'%</div><div class="month-stat-label">合格率</div></div></div></div>'}
+function renderRankContent(){var mode=rankState.mode;var records=getRecords(mode);if(rankState.monthFilter!=='all')records=records.filter(function(r){return r.month===rankState.monthFilter});if(mode==='daily'&&rankState.dateFilter!=='all')records=records.filter(function(r){return r.date===rankState.dateFilter});var content=document.getElementById('rankContent');if(records.length===0){content.innerHTML='<div class="empty-rank">暂无考试成绩</div>';return}var passLine=EXAM_CONFIG[mode].passLine;var html='<table class="rank-table"><thead><tr><th style="width:60px">排名</th><th>姓名</th><th style="width:80px">成绩</th><th style="width:70px">是否合格</th><th style="width:70px">正确率</th><th style="width:70px">用时</th><th>考试时间</th></tr></thead><tbody>';records.forEach(function(r,i){var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);var total=r.correct+r.wrong;var rate=total>0?Math.round(r.correct/total*100):0;var isPass=r.score>=passLine;var passText=isPass?'<span style="color:#52c41a;font-weight:600">合格</span>':'<span style="color:#f5222d;font-weight:600">不合格</span>';html+='<tr><td><span class="rank-medal">'+medal+'</span></td><td class="rank-name"><span class="rank-name-clickable" onclick="showUserHistory(\''+mode+'\',\''+String(r.name).replace(/'/g,"\\'")+'\')">'+escapeHtml(r.name)+'</span></td><td><strong>'+r.score+'</strong>分</td><td>'+passText+'</td><td>'+rate+'%</td><td>'+r.time+'分钟</td><td>'+escapeHtml(r.datetime)+'</td></tr>'});html+='</tbody></table>';content.innerHTML=html}
+var currentHistoryMonth='all';
+function showUserHistory(mode,name){currentHistoryMode=mode;currentHistoryName=name;var allRecords=getRecords(mode).filter(function(r){return r.name===name});var passLine=EXAM_CONFIG[mode].passLine;if(mode==='daily'&&currentHistoryMonth==='all'){var now=new Date();var cur=now.getFullYear()+'-'+((now.getMonth()+1)<10?'0':'')+(now.getMonth()+1);if(allRecords.some(function(r){return r.month===cur}))currentHistoryMonth=cur}var records=allRecords;if(mode==='daily'&&currentHistoryMonth!=='all')records=allRecords.filter(function(r){return r.month===currentHistoryMonth});var months=Array.from(new Set(allRecords.map(function(r){return r.month}))).sort().reverse();document.getElementById('historyTitle').textContent=name+' 的'+EXAM_CONFIG[mode].name+'历史记录（共'+allRecords.length+'次'+(mode==='daily'&&currentHistoryMonth!=='all'?'，显示'+currentHistoryMonth+'月':'')+'）';var content=document.getElementById('historyContent');if(allRecords.length===0){content.innerHTML='<div class="empty-rank">暂无考试记录</div>';document.getElementById('historyModal').classList.add('show');return}var monthHtml='';if(mode==='daily'&&months.length>0){monthHtml='<div style="margin-bottom:12px;text-align:center"><span style="font-size:13px;color:#666;margin-right:6px">查看月份：</span><select onchange="currentHistoryMonth=this.value;showUserHistory(\''+mode+'\',\''+String(name).replace(/'/g,"\\'")+'\')"><option value="all">全部月份</option>';months.forEach(function(m){monthHtml+='<option value="'+m+'"'+(currentHistoryMonth===m?' selected':'')+'>'+m+'</option>'});monthHtml+='</select></div>'}var avgScore=records.length>0?Math.round(records.reduce(function(s,r){return s+r.score},0)/records.length):0;var maxScore=records.length>0?Math.max.apply(null,records.map(function(r){return r.score})):0;var minScore=records.length>0?Math.min.apply(null,records.map(function(r){return r.score})):0;var passCount=records.filter(function(r){return r.score>=passLine}).length;var html=monthHtml+'<div class="month-stats" style="margin-bottom:16px"><div class="month-stats-grid"><div class="month-stat-item"><div class="month-stat-num">'+records.length+'</div><div class="month-stat-label">'+(mode==='daily'&&currentHistoryMonth!=='all'?currentHistoryMonth+'月考试次数':'考试次数')+'</div></div><div class="month-stat-item"><div class="month-stat-num">'+avgScore+'</div><div class="month-stat-label">平均分</div></div><div class="month-stat-item"><div class="month-stat-num" style="color:#52c41a">'+maxScore+'</div><div class="month-stat-label">最高分</div></div><div class="month-stat-item"><div class="month-stat-num" style="color:#f5222d">'+minScore+'</div><div class="month-stat-label">最低分</div></div><div class="month-stat-item"><div class="month-stat-num" style="color:#1890ff">'+passCount+'</div><div class="month-stat-label">合格次数</div></div></div></div>';if(records.length===0){html+='<div class="empty-rank">该月份暂无考试记录</div>'}else{records.sort(function(a,b){return b.timestamp-a.timestamp}).forEach(function(r,idx){var isPass=r.score>=passLine;html+='<div class="history-item"><div class="history-item-header" onclick="this.parentElement.classList.toggle(\'expanded\')"><div><span style="font-size:13px;color:#888">'+escapeHtml(r.datetime)+'</span></div><div style="display:flex;align-items:center;gap:10px"><button class="history-del-btn" onclick="event.stopPropagation();confirmDeleteRecord(\''+mode+'\','+r.timestamp+')">删除</button><div class="history-score '+(isPass?'pass':'fail')+'">'+r.score+'分 '+(isPass?'✓合格':'✗不合格')+'</div></div></div><div class="history-item-body">';html+='<div style="margin-bottom:8px"><strong>成绩：</strong>'+r.score+'分（答对'+r.correct+'题，答错'+r.wrong+'题，未答'+r.unanswered+'题），用时'+r.time+'分钟</div>';if(r.details&&r.details.length>0){html+='<div style="margin-top:10px"><strong>答题详情：</strong></div>';r.details.forEach(function(d,di){html+='<div style="margin-top:8px;padding:8px;background:'+(d.isCorrect?'#f6ffed':'#fff1f0')+';border-radius:4px">';html+='<div style="font-size:12px;color:'+(d.isCorrect?'#52c41a':'#f5222d')+';font-weight:600;margin-bottom:4px">第'+(di+1)+'题 ['+TYPE_NAMES[d.type]+'] '+(d.isCorrect?'✓ 正确':'✗ 错误')+'（'+d.score+'分）</div>';html+='<div style="font-size:12px;line-height:1.6">题目：'+escapeHtml(d.question)+'</div>';var letters=['A','B','C','D','E','F','G','H'];d.options.forEach(function(opt,oi){var isCorrectOpt=(d.type==='single'||d.type==='judge')?opt===d.correctAnswer:(Array.isArray(d.correctAnswer)&&d.correctAnswer.indexOf(opt)>=0);var isUserOpt=(d.type==='single'||d.type==='judge')?d.userAns===opt:(Array.isArray(d.userAns)&&d.userAns.indexOf(opt)>=0);if(isCorrectOpt||isUserOpt){html+='<div style="font-size:12px;color:'+(isCorrectOpt?'#52c41a':'#f5222d')+'">'+letters[oi]+'. '+escapeHtml(opt)+(isCorrectOpt?' ✓正确答案':'')+(isUserOpt&&!isCorrectOpt?' ✗你的选择':'')+'</div>'}});html+='</div>'})}html+='</div></div>'})}content.innerHTML=html;document.getElementById('historyModal').classList.add('show')}
+function showWrongRecordPage(){renderWrongRecordTable();showPage('wrong-record')}
+function renderWrongRecordTable(){var records=getRecords('daily');var errors=[];records.forEach(function(r){if(!r.details)return;r.details.forEach(function(d){if(!d.isCorrect){errors.push({date:r.date,datetime:r.datetime,name:r.name,question:d.question,userAns:d.userAns,correctAnswer:d.correctAnswer,examScore:r.score,passLine:r.passLine||80})}})});errors.sort(function(a,b){return String(a.datetime).localeCompare(String(b.datetime))});var content=document.getElementById('wrongRecordContent');if(errors.length===0){content.innerHTML='<div class="empty-rank">暂无错题记录，完成日考后自动生成</div>';return}var html='<table class="wrong-record-table"><thead><tr><th style="width:45px">序号</th><th style="width:90px">日期</th><th style="width:85px">日考人员</th><th>考试内容（错题）</th><th style="width:70px">结果</th><th style="width:110px">复查人/日期</th><th style="width:80px">复查结果</th></tr></thead><tbody>';errors.forEach(function(e,i){var ua=e.userAns?(Array.isArray(e.userAns)?e.userAns.join('、'):e.userAns):'未作答';var ca=Array.isArray(e.correctAnswer)?e.correctAnswer.join('、'):e.correctAnswer;var result=e.examScore>=e.passLine?'合格':'不合格';html+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(e.date)+'</td><td>'+escapeHtml(e.name)+'</td><td class="wrong-record-content">'+escapeHtml(e.question)+'<br><span style="color:#f5222d">你的答案：'+escapeHtml(ua)+'</span>　<span style="color:#52c41a">正确答案：'+escapeHtml(ca)+'</span></td><td>'+result+'</td><td></td><td></td></tr>'});html+='</tbody></table><div style="margin-top:12px;font-size:13px;color:#888">共 '+errors.length+' 条错题记录（按考试时间先后排序）</div>';content.innerHTML=html}
+function printWrongRecord(){var records=getRecords('daily');var errors=[];records.forEach(function(r){if(!r.details)return;r.details.forEach(function(d){if(!d.isCorrect){errors.push({date:r.date,datetime:r.datetime,name:r.name,question:d.question,userAns:d.userAns,correctAnswer:d.correctAnswer,examScore:r.score,passLine:r.passLine||80})}})});errors.sort(function(a,b){return String(a.datetime).localeCompare(String(b.datetime))});var now=new Date();var nowStr=now.getFullYear()+'-'+((now.getMonth()+1)<10?'0':'')+(now.getMonth()+1)+'-'+((now.getDate()<10)?'0':'')+now.getDate();var html='<div class="print-area" id="printArea"><h2>乘务部日考错误记录表</h2><div class="print-sub">打印日期：'+nowStr+'　|　共 '+errors.length+' 条错题记录（按时间先后排序）</div><table><thead><tr><th style="width:36px">序号</th><th style="width:80px">日期</th><th style="width:70px">日考人员</th><th>考试内容</th><th style="width:55px">结果</th><th style="width:90px">复查人/日期</th><th style="width:70px">复查结果</th></tr></thead><tbody>';errors.forEach(function(e,i){var ua=e.userAns?(Array.isArray(e.userAns)?e.userAns.join('、'):e.userAns):'未作答';var ca=Array.isArray(e.correctAnswer)?e.correctAnswer.join('、'):e.correctAnswer;var result=e.examScore>=e.passLine?'合格':'不合格';html+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(e.date)+'</td><td>'+escapeHtml(e.name)+'</td><td class="print-detail-question">'+escapeHtml(e.question)+'　你的答案：'+escapeHtml(ua)+'　正确答案：'+escapeHtml(ca)+'</td><td>'+result+'</td><td></td><td></td></tr>'});html+='</tbody></table><div class="print-footer"><div>记录人：____________</div><div>审核人：____________</div><div>日期：____年__月__日</div></div></div>';var old=document.getElementById('printArea');if(old)old.remove();document.body.insertAdjacentHTML('beforeend',html);window.print();setTimeout(function(){var el=document.getElementById('printArea');if(el)el.remove()},600)}
+function printMonthlyReport(){var mode='monthly';var records=getRecords(mode);if(records.length===0){alert('暂无月考成绩，无法打印');return}var filterMonth=(rankState.dateFilter&&rankState.dateFilter!=='all')?rankState.dateFilter:null;var displayRecords=filterMonth?records.filter(function(r){return r.month===filterMonth}):records;if(displayRecords.length===0){alert('该月份暂无考试记录');return}var passLine=EXAM_CONFIG.monthly.passLine;var total=displayRecords.length;var avgScore=Math.round(displayRecords.reduce(function(s,r){return s+r.score},0)/total);var maxScore=Math.max.apply(null,displayRecords.map(function(r){return r.score}));var minScore=Math.min.apply(null,displayRecords.map(function(r){return r.score}));var passCount=displayRecords.filter(function(r){return r.score>=passLine}).length;var passRate=Math.round(passCount/total*100);var personCount=new Set(displayRecords.map(function(r){return r.name})).size;var sorted=displayRecords.slice().sort(function(a,b){return b.score-a.score||a.timestamp-b.timestamp});var now=new Date();var nowStr=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();var monthLabel=filterMonth?filterMonth:'全部月份';var html='<div class="print-area" id="printArea"><h2>乘务部月考总体情况报表</h2><div class="print-sub">统计月份：'+monthLabel+'　|　统计日期：'+nowStr+'　|　合格线：'+passLine+'分　|　满分：100分</div>';html+='<div class="print-section-title">一、考试总体情况</div><div class="print-stats">';html+='<div class="print-stat"><div class="print-stat-num">'+total+'</div><div class="print-stat-label">考试人次</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+personCount+'</div><div class="print-stat-label">参考人数</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+avgScore+'</div><div class="print-stat-label">平均分</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+maxScore+'</div><div class="print-stat-label">最高分</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+minScore+'</div><div class="print-stat-label">最低分</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+passCount+'</div><div class="print-stat-label">合格人数</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+passRate+'%</div><div class="print-stat-label">合格率</div></div>';html+='</div>';html+='<div class="print-section-title">二、成绩排名明细</div><table><thead><tr><th style="width:50px">排名</th><th>姓名</th><th style="width:70px">成绩</th><th style="width:70px">是否合格</th><th style="width:70px">正确率</th><th style="width:70px">用时</th><th>考试时间</th></tr></thead><tbody>';sorted.forEach(function(r,i){var t2=r.correct+r.wrong;var rate=t2>0?Math.round(r.correct/total*100):0;var isPass=r.score>=passLine;html+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(r.name)+'</td><td>'+r.score+'分</td><td>'+(isPass?'合格':'不合格')+'</td><td>'+rate+'%</td><td>'+r.time+'分钟</td><td>'+escapeHtml(r.datetime)+'</td></tr>'});html+='</tbody></table><div class="print-footer"><div>统计人：____________</div><div>审核人：____________</div><div>日期：____年__月__日</div></div></div>';var old=document.getElementById('printArea');if(old)old.remove();document.body.insertAdjacentHTML('beforeend',html);window.print();setTimeout(function(){var el=document.getElementById('printArea');if(el)el.remove()},600)}
+function printUserHistory(withDetail){var mode=currentHistoryMode;var name=currentHistoryName;var records=getRecords(mode).filter(function(r){return r.name===name});if(records.length===0){alert('暂无该考生考试记录');return}var passLine=EXAM_CONFIG[mode].passLine;var cfg=EXAM_CONFIG[mode];var avgScore=Math.round(records.reduce(function(s,r){return s+r.score},0)/records.length);var maxScore=Math.max.apply(null,records.map(function(r){return r.score}));var minScore=Math.min.apply(null,records.map(function(r){return r.score}));var passCount=records.filter(function(r){return r.score>=passLine}).length;var now=new Date();var nowStr=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();var sorted=records.slice().sort(function(a,b){return b.timestamp-a.timestamp});var html='<div class="print-area" id="printArea"><h2>乘务部'+cfg.name+'个人考试记录表</h2><div class="print-sub">打印日期：'+nowStr+'　|　考试类型：'+cfg.name+'　|　合格线：'+passLine+'分　|　满分：100分</div><div class="print-name-header"><div>姓名：<strong>'+escapeHtml(name)+'</strong></div><div>考试次数：'+records.length+'次</div></div>';html+='<div class="print-section-title">一、个人成绩汇总</div><div class="print-stats">';html+='<div class="print-stat"><div class="print-stat-num">'+records.length+'</div><div class="print-stat-label">考试次数</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+avgScore+'</div><div class="print-stat-label">平均分</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+maxScore+'</div><div class="print-stat-label">最高分</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+minScore+'</div><div class="print-stat-label">最低分</div></div>';html+='<div class="print-stat"><div class="print-stat-num">'+passCount+'</div><div class="print-stat-label">合格次数</div></div>';html+='</div>';sorted.forEach(function(r,idx){var isPass=r.score>=passLine;html+='<div class="print-section-title">二、第'+(idx+1)+'次考试　'+escapeHtml(r.datetime)+'　成绩：'+r.score+'分　'+(isPass?'合格':'不合格')+'</div>';html+='<table><thead><tr><th style="width:90px">考试时间</th><th style="width:60px">成绩</th><th style="width:60px">结果</th><th>答题情况</th><th style="width:70px">用时</th></tr></thead><tbody><tr><td>'+escapeHtml(r.datetime)+'</td><td>'+r.score+'分</td><td>'+(isPass?'合格':'不合格')+'</td><td>答对'+r.correct+'题，答错'+r.wrong+'题，未答'+r.unanswered+'题</td><td>'+r.time+'分钟</td></tr></tbody></table>';if(withDetail&&r.details&&r.details.length>0){html+='<table><thead><tr><th style="width:36px">题号</th><th style="width:46px">题型</th><th>题目</th><th style="width:90px">你的答案</th><th style="width:90px">正确答案</th><th style="width:40px">得分</th></tr></thead><tbody>';r.details.forEach(function(d,di){var ua=d.userAns?(Array.isArray(d.userAns)?d.userAns.join('、'):d.userAns):'未作答';var ca=Array.isArray(d.correctAnswer)?d.correctAnswer.join('、'):d.correctAnswer;html+='<tr><td>'+(di+1)+'</td><td>'+TYPE_NAMES[d.type]+'</td><td class="print-detail-question">'+escapeHtml(d.question)+'</td><td>'+escapeHtml(ua)+'</td><td>'+escapeHtml(ca)+'</td><td>'+d.score+'分</td></tr>'});html+='</tbody></table>'}});html+='<div class="print-footer"><div>考生签名：____________</div><div>审核人：____________</div><div>日期：____年__月__日</div></div></div>';var old=document.getElementById('printArea');if(old)old.remove();document.body.insertAdjacentHTML('beforeend',html);window.print();setTimeout(function(){var el=document.getElementById('printArea');if(el)el.remove()},600)}
+function hideHistoryModal(){document.getElementById('historyModal').classList.remove('show')}
+function getWrongStats(){try{return JSON.parse(localStorage.getItem('exam_wrong_stats_v4')||'{}')}catch(e){return{}}}
+function updateWrongStats(updates){var stats=getWrongStats();Object.keys(updates).forEach(function(qid){if(!stats[qid])stats[qid]=updates[qid];else{stats[qid].total+=updates[qid].total;stats[qid].wrong+=updates[qid].wrong}});localStorage.setItem('exam_wrong_stats_v4',JSON.stringify(stats))}
+function showWrongPage(){wrongFilterType='all';document.querySelectorAll('.wrong-filter button').forEach(function(b){b.classList.toggle('active',b.dataset.type==='all')});renderWrongStats();showPage('wrong')}
+function filterWrong(type){wrongFilterType=type;document.querySelectorAll('.wrong-filter button').forEach(function(b){b.classList.toggle('active',b.dataset.type===type)});renderWrongList()}
+function renderWrongStats(){var stats=getWrongStats();var list=Object.values(stats);var totalQuestions=list.length;var totalAttempts=list.reduce(function(s,x){return s+x.total},0);var totalWrong=list.reduce(function(s,x){return s+x.wrong},0);var highError=list.filter(function(x){return x.total>0&&x.wrong/x.total>=0.5}).length;document.getElementById('wrongStatsBar').innerHTML='<div class="stat-item"><div class="stat-num">'+totalQuestions+'</div><div class="stat-label">考过题目</div></div><div class="stat-item"><div class="stat-num">'+totalAttempts+'</div><div class="stat-label">总作答次数</div></div><div class="stat-item"><div class="stat-num" style="color:#f5222d">'+totalWrong+'</div><div class="stat-label">总错误次数</div></div><div class="stat-item"><div class="stat-num" style="color:#fa8c16">'+highError+'</div><div class="stat-label">高错误率题</div></div>';renderWrongList()}
+function renderWrongList(){var stats=getWrongStats();var list=Object.values(stats).filter(function(x){return x.total>0});if(wrongFilterType!=='all')list=list.filter(function(x){return x.type===wrongFilterType});list.sort(function(a,b){var ra=a.wrong/a.total;var rb=b.wrong/b.total;if(rb!==ra)return rb-ra;return b.wrong-a.wrong});var container=document.getElementById('wrongList');if(list.length===0){container.innerHTML='<div class="empty-rank">暂无错题数据</div>';return}var html='';list.forEach(function(item,i){var rate=Math.round(item.wrong/item.total*100);var rateClass='low';if(rate>=50)rateClass='high';else if(rate>=30)rateClass='mid';html+='<div class="wrong-list-item"><div class="wrong-list-header" onclick="this.parentElement.classList.toggle(\'expanded\')"><div style="flex:1;margin-right:10px"><span class="question-type '+TYPE_CLASSES[item.type]+'">'+TYPE_NAMES[item.type]+'</span><span style="font-size:14px">'+escapeHtml(item.question.substring(0,45))+(item.question.length>45?'...':'')+'</span></div><div class="wrong-rate '+rateClass+'">错误率 '+rate+'%<br><span style="font-size:11px;font-weight:normal;color:#999">'+item.wrong+'/'+item.total+'次</span></div></div><div class="wrong-list-body"><div style="margin-bottom:8px"><strong>题目：</strong>'+escapeHtml(item.question)+'</div>';if(item.options&&item.options.length>0){html+='<div style="margin-bottom:8px">';var letters=['A','B','C','D','E','F','G','H'];item.options.forEach(function(opt,oi){var isCorrect=(item.type==='single'||item.type==='judge')?opt===item.correctAnswer:(Array.isArray(item.correctAnswer)&&item.correctAnswer.indexOf(opt)>=0);html+='<div style="'+(isCorrect?'color:#52c41a;font-weight:600;':'color:#666;')+'">'+letters[oi]+'. '+escapeHtml(opt)+(isCorrect?' ✓':'')+'</div>'});html+='</div>'}html+='</div></div>'});container.innerHTML=html}
+function confirmClearRank(){pendingPwdAction={type:'clearAll'};document.getElementById('pwdInput').value='';document.getElementById('pwdError').classList.remove('show');document.getElementById('pwdModal').classList.add('show');setTimeout(function(){document.getElementById('pwdInput').focus()},100)}
+function confirmDeleteRecord(mode,ts){pendingPwdAction={type:'delete',mode:mode,ts:ts};document.getElementById('pwdInput').value='';document.getElementById('pwdError').classList.remove('show');document.getElementById('pwdModal').classList.add('show');setTimeout(function(){document.getElementById('pwdInput').focus()},100)}
+function doDeleteRecord(mode,ts){pendingPwdAction=null;var records=getRecords(mode).filter(function(r){return r.timestamp!==ts});localStorage.setItem('exam_'+mode+'_records_v4',JSON.stringify(records));if(document.getElementById('historyModal').classList.contains('show')){showUserHistory(mode,currentHistoryName)}renderRank();renderHomeStats();alert('该条成绩记录已删除')}
+function exportBackup(){var data={version:4,exportTime:new Date().toLocaleString('zh-CN'),dailyRecords:getRecords('daily'),monthlyRecords:getRecords('monthly'),wrongStats:getWrongStats()};var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='乘务部考试系统备份_'+new Date().getFullYear()+'-'+((new Date().getMonth()+1)<10?'0':'')+(new Date().getMonth()+1)+'-'+((new Date().getDate()<10)?'0':'')+new Date().getDate()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url)},1500)}
+function importBackup(event){var file=event.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var data=JSON.parse(e.target.result);if(!data||typeof data!=='object'){alert('备份文件格式不正确');return}var dc=data.dailyRecords?data.dailyRecords.length:0;var mc=data.monthlyRecords?data.monthlyRecords.length:0;showConfirm('恢复数据','确认用备份数据覆盖当前系统数据吗？备份包含：日考记录 '+dc+' 条，月考记录 '+mc+' 条。此操作将替换现有数据！',function(){if(data.dailyRecords)localStorage.setItem('exam_daily_records_v4',JSON.stringify(data.dailyRecords));if(data.monthlyRecords)localStorage.setItem('exam_monthly_records_v4',JSON.stringify(data.monthlyRecords));if(data.wrongStats)localStorage.setItem('exam_wrong_stats_v4',JSON.stringify(data.wrongStats));hideConfirmModal();renderHomeStats();goHome();alert('数据恢复成功！')})}catch(err){alert('导入失败：'+err.message)}};reader.readAsText(file);event.target.value=''}
+function hidePwdModal(){document.getElementById('pwdModal').classList.remove('show')}
+function verifyPwd(){var input=document.getElementById('pwdInput').value;if(input===CLEAR_PASSWORD){hidePwdModal();if(pendingPwdAction&&pendingPwdAction.type==='delete'){doDeleteRecord(pendingPwdAction.mode,pendingPwdAction.ts)}else{showConfirm('确认清空','确定要清空所有日考和月考的成绩记录、历史记录和错题统计吗？此操作不可恢复！',function(){localStorage.removeItem('exam_daily_records_v4');localStorage.removeItem('exam_monthly_records_v4');localStorage.removeItem('exam_wrong_stats_v4');hideConfirmModal();renderRank();renderHomeStats();alert('成绩已清空')})}}else{document.getElementById('pwdError').classList.add('show');document.getElementById('pwdInput').value=''}}
+function showConfirm(title,content,onOk){document.getElementById('confirmTitle').textContent=title;document.getElementById('confirmContent').textContent=content;document.getElementById('confirmOkBtn').onclick=onOk;document.getElementById('confirmModal').classList.add('show')}
+function hideConfirmModal(){document.getElementById('confirmModal').classList.remove('show')}
+function escapeHtml(str){if(str===null||str===undefined)return'';var div=document.createElement('div');div.textContent=String(str);return div.innerHTML}
+init();
+</script>
+</body>
+</html>
